@@ -10,6 +10,8 @@ lerna-debug.log*
 # Diagnostic and scratch test scripts (contains local test credentials/tokens)
 scripts/
 *.mjs
+*.cjs
+backups/
 check_users.js
 scratch_*.js
 
