@@ -464,7 +464,7 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
           <div className="eyebrow">HANDSET INVENTORY & INTAKE</div>
           <h1>Phone Inventory & Bulk Handset Intake</h1>
           <p>
-            Track individual handsets by unique IMEI, storage, condition, intake cost, and 360° repair lifecycle.
+            Track individual handsets by unique IMEI, storage, intake cost, and 360° repair lifecycle.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -574,17 +574,6 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                 }))}
                 minWidth="135px"
               />
-
-              <CustomSelect
-                label="Condition"
-                value={conditionFilter}
-                onChange={setConditionFilter}
-                options={conditionOptions.map((c) => ({
-                  value: c,
-                  label: c === "all" ? "All Conditions" : c,
-                }))}
-                minWidth="145px"
-              />
             </div>
           </div>
 
@@ -600,7 +589,7 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                 <RefreshCw size={14} />
               </button>
 
-              {(statusFilter !== "all" || storageFilter !== "all" || conditionFilter !== "all" || search.trim() !== "") && (
+              {(statusFilter !== "all" || storageFilter !== "all" || search.trim() !== "") && (
                 <button
                   type="button"
                   className="secondary-btn"
@@ -633,7 +622,7 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
           </div>
         </div>
 
-        {/* 1. Desktop View: Comprehensive 10-column Table */}
+        {/* 1. Desktop View: Comprehensive 8-column Table */}
         <div className="table-wrap desktop-devices-table">
           <table>
             <thead>
@@ -642,7 +631,6 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                 <th>IMEI Number</th>
                 <th>Storage</th>
                 <th>Color</th>
-                <th>Condition</th>
                 <th>Initial Problem / Notes</th>
                 <th>Status</th>
                 <th>Received Date</th>
@@ -652,11 +640,11 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="empty">Loading phone inventory…</td>
+                  <td colSpan={8} className="empty">Loading phone inventory…</td>
                 </tr>
               ) : filteredDevices.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="empty">
+                  <td colSpan={8} className="empty">
                     No handsets match your filters. Click "Add Single Phone" or "Bulk Phone Entry" to register handsets.
                   </td>
                 </tr>
@@ -702,9 +690,6 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                         </span>
                       </td>
                       <td>{d.color || "Black"}</td>
-                      <td>
-                        <span className="tag" style={{ fontWeight: 600 }}>{d.condition || "Good"}</span>
-                      </td>
                       <td>
                         {d.initial_issue ? (
                           <div style={{ fontSize: "11px", color: "#0f172a", fontWeight: 500 }}>
@@ -847,9 +832,6 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                     </span>
                     <span className="tag" style={{ background: "#f8fafc", color: "#475569", fontSize: "11px" }}>
                       {d.color || "Black"}
-                    </span>
-                    <span className="tag" style={{ background: "#fef3f2", color: "#991b1b", fontSize: "11px", fontWeight: 600 }}>
-                      {d.condition || "Good"}
                     </span>
                   </div>
 
