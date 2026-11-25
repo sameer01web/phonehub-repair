@@ -1040,8 +1040,21 @@ export default function JobCardsPage() {
       {/* MODAL: OPEN REPAIR JOB CARD */}
       {showAddJob && (
         <div className="modal-backdrop">
-          <form className="modal" onSubmit={handleCreateJob} style={{ maxWidth: "660px" }}>
-            <div className="modal-head">
+          <form
+            className="modal"
+            onSubmit={handleCreateJob}
+            style={{
+              maxWidth: "660px",
+              width: "100%",
+              maxHeight: "88vh",
+              display: "flex",
+              flexDirection: "column",
+              padding: "20px 22px 18px",
+              boxSizing: "border-box",
+              overflow: "hidden",
+            }}
+          >
+            <div className="modal-head" style={{ flexShrink: 0, marginBottom: "12px" }}>
               <div>
                 <h2>Open Repair Job Card</h2>
                 <p>Register incoming handset and open an active bench repair ticket.</p>
@@ -1049,171 +1062,154 @@ export default function JobCardsPage() {
               <button type="button" className="icon-btn" onClick={() => setShowAddJob(false)}>×</button>
             </div>
 
-            {/* Intake Mode Switcher */}
-            <div style={{ display: "flex", gap: "10px", marginBottom: "16px", borderBottom: "1px solid #e0e7ef" }}>
-              <button
-                type="button"
-                onClick={() => setIntakeMode("new_phone")}
-                style={{
-                  padding: "8px 14px",
-                  border: "none",
-                  background: "none",
-                  borderBottom: intakeMode === "new_phone" ? "3px solid #0176d3" : "3px solid transparent",
-                  fontWeight: intakeMode === "new_phone" ? 700 : 500,
-                  color: intakeMode === "new_phone" ? "#0176d3" : "#687b92",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                }}
-              >
-                ● Direct Handset Intake & Ticket
-              </button>
-              <button
-                type="button"
-                onClick={() => setIntakeMode("existing_phone")}
-                style={{
-                  padding: "8px 14px",
-                  border: "none",
-                  background: "none",
-                  borderBottom: intakeMode === "existing_phone" ? "3px solid #0176d3" : "3px solid transparent",
-                  fontWeight: intakeMode === "existing_phone" ? 700 : 500,
-                  color: intakeMode === "existing_phone" ? "#0176d3" : "#687b92",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                }}
-              >
-                Select Existing Inventory Phone
-              </button>
-            </div>
-
-            {intakeMode === "new_phone" ? (
-              <div className="form-grid">
-                <label>
-                  Brand *
-                  <input required placeholder="e.g. Apple, Samsung" value={brand} onChange={(e) => setBrand(e.target.value)} />
-                </label>
-                <label>
-                  Model *
-                  <input required placeholder="e.g. iPhone 14 Pro, S23" value={model} onChange={(e) => setModel(e.target.value)} />
-                </label>
-                <label>
-                  IMEI (14-16 digits, optional)
-                  <input placeholder="e.g. 354890098765432" value={imei} onChange={(e) => setImei(e.target.value)} />
-                </label>
-                <label>
-                  Color
-                  <input value={color} onChange={(e) => setColor(e.target.value)} />
-                </label>
-                <label>
-                  Storage Capacity
-                  <select value={storage} onChange={(e) => setStorage(e.target.value)}>
-                    <option value="64GB">64GB</option>
-                    <option value="128GB">128GB</option>
-                    <option value="256GB">256GB</option>
-                    <option value="512GB">512GB</option>
-                    <option value="1TB">1TB</option>
-                  </select>
-                </label>
-                <label>
-                  Condition
-                  <select value={condition} onChange={(e) => setCondition(e.target.value)}>
-                    <option>Good</option>
-                    <option>Brand New</option>
-                    <option>Like New</option>
-                    <option>Fair</option>
-                    <option>Damaged</option>
-                  </select>
-                </label>
+            {/* Scrollable Modal Body */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: "6px" }}>
+              {/* Intake Mode Switcher */}
+              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", borderBottom: "1px solid #e0e7ef" }}>
+                <button
+                  type="button"
+                  onClick={() => setIntakeMode("new_phone")}
+                  style={{
+                    padding: "8px 14px",
+                    border: "none",
+                    background: "none",
+                    borderBottom: intakeMode === "new_phone" ? "3px solid #0176d3" : "3px solid transparent",
+                    fontWeight: intakeMode === "new_phone" ? 700 : 500,
+                    color: intakeMode === "new_phone" ? "#0176d3" : "#687b92",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  ● Direct Handset Intake & Ticket
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIntakeMode("existing_phone")}
+                  style={{
+                    padding: "8px 14px",
+                    border: "none",
+                    background: "none",
+                    borderBottom: intakeMode === "existing_phone" ? "3px solid #0176d3" : "3px solid transparent",
+                    fontWeight: intakeMode === "existing_phone" ? 700 : 500,
+                    color: intakeMode === "existing_phone" ? "#0176d3" : "#687b92",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  Select Existing Inventory Phone
+                </button>
               </div>
-            ) : (
-              <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "6px" }}>
-                  Select Phone from Inventory:
-                  <select
-                    value={existingDeviceId}
-                    onChange={(e) => setExistingDeviceId(e.target.value)}
-                    style={{ height: "36px", border: "1px solid #e0e7ef", borderRadius: "6px", padding: "0 8px" }}
-                  >
-                    {devices.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.brand} {d.model} (IMEI: {d.imei1 || "N/A"}) — Status: {formatDeviceStatus(d.status)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            )}
 
-            <div style={{ marginTop: "12px", display: "grid", gap: "10px" }}>
-              <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                Reported Complaint / Issue *
-                <input
-                  required
-                  placeholder="e.g. Broken screen display, touch unresponsive, water damage"
-                  value={complaint}
-                  onChange={(e) => setComplaint(e.target.value)}
-                  style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
-                />
-              </label>
-
-              <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                Technician Initial Diagnosis
-                <input
-                  placeholder="e.g. OLED digitizer flex cable torn; requires screen replacement"
-                  value={diagnosis}
-                  onChange={(e) => setDiagnosis(e.target.value)}
-                  style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
-                />
-              </label>
-
-              <div className="form-grid">
-                <label>
-                  Repair Priority
-                  <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-                    <option value="Normal">Normal</option>
-                    <option value="Urgent">Urgent (Express)</option>
-                    <option value="High">High</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </label>
-
-                <label>
-                  Estimated Repair Cost (₹)
-                  <input type="number" min="0" value={estimatedCost} onChange={(e) => setEstimatedCost(e.target.value)} />
-                </label>
-
-                <label>
-                  Assign Initial Technician
-                  <select value={initialTechId} onChange={(e) => setInitialTechId(e.target.value)}>
-                    <option value="">-- Unassigned (Assign Later) --</option>
-                    {staffList
-                      .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
-                      .map((tech) => (
-                        <option key={tech.id} value={tech.id}>
-                          {tech.full_name || "Staff"} ({tech.role})
+              {intakeMode === "new_phone" ? (
+                <div className="form-grid">
+                  <label>
+                    Brand *
+                    <input required placeholder="e.g. Apple, Samsung" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                  </label>
+                  <label>
+                    Model *
+                    <input required placeholder="e.g. iPhone 14 Pro, S23" value={model} onChange={(e) => setModel(e.target.value)} />
+                  </label>
+                  <label>
+                    IMEI (14-16 digits, optional)
+                    <input placeholder="e.g. 354890098765432" value={imei} onChange={(e) => setImei(e.target.value)} />
+                  </label>
+                  <label>
+                    Color
+                    <input value={color} onChange={(e) => setColor(e.target.value)} />
+                  </label>
+                  <label style={{ gridColumn: "1 / -1" }}>
+                    Storage Capacity
+                    <select value={storage} onChange={(e) => setStorage(e.target.value)}>
+                      <option value="64GB">64GB</option>
+                      <option value="128GB">128GB</option>
+                      <option value="256GB">256GB</option>
+                      <option value="512GB">512GB</option>
+                      <option value="1TB">1TB</option>
+                    </select>
+                  </label>
+                </div>
+              ) : (
+                <div style={{ marginBottom: "14px" }}>
+                  <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "6px" }}>
+                    Select Phone from Inventory:
+                    <select
+                      value={existingDeviceId}
+                      onChange={(e) => setExistingDeviceId(e.target.value)}
+                      style={{ height: "36px", border: "1px solid #e0e7ef", borderRadius: "6px", padding: "0 8px" }}
+                    >
+                      {devices.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.brand} {d.model} (IMEI: {d.imei1 || "N/A"}) — Status: {formatDeviceStatus(d.status)}
                         </option>
                       ))}
-                  </select>
+                    </select>
+                  </label>
+                </div>
+              )}
+
+              <div style={{ marginTop: "12px", display: "grid", gap: "10px" }}>
+                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
+                  Reported Complaint / Issue *
+                  <input
+                    required
+                    placeholder="e.g. Broken screen display, touch unresponsive, water damage"
+                    value={complaint}
+                    onChange={(e) => setComplaint(e.target.value)}
+                    style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
+                  />
                 </label>
 
-                <label>
-                  Initial Bench Task
-                  <input value={initialTask} onChange={(e) => setInitialTask(e.target.value)} />
+                <div className="form-grid">
+                  <label>
+                    Repair Priority
+                    <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                      <option value="Normal">Normal</option>
+                      <option value="Urgent">Urgent (Express)</option>
+                      <option value="High">High</option>
+                      <option value="Low">Low</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    Estimated Repair Cost (₹)
+                    <input type="number" min="0" value={estimatedCost} onChange={(e) => setEstimatedCost(e.target.value)} />
+                  </label>
+
+                  <label>
+                    Assign Initial Technician
+                    <select value={initialTechId} onChange={(e) => setInitialTechId(e.target.value)}>
+                      <option value="">-- Unassigned (Assign Later) --</option>
+                      {staffList
+                        .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
+                        .map((tech) => (
+                          <option key={tech.id} value={tech.id}>
+                            {tech.full_name || "Staff"} ({tech.role})
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    Initial Bench Task
+                    <input value={initialTask} onChange={(e) => setInitialTask(e.target.value)} />
+                  </label>
+                </div>
+
+                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
+                  Internal Notes & Repair Precautions
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Customer reported power button sticky. Backup recommended before firmware."
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
+                  />
                 </label>
               </div>
-
-              <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                Internal Notes & Repair Precautions
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Customer reported power button sticky. Backup recommended before firmware."
-                  value={internalNotes}
-                  onChange={(e) => setInternalNotes(e.target.value)}
-                  style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
-                />
-              </label>
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-actions" style={{ flexShrink: 0, marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #e0e7ef" }}>
               <button type="button" className="secondary-btn" onClick={() => setShowAddJob(false)}>Cancel</button>
               <button className="primary-btn" disabled={submitting}>
                 {submitting ? "Opening Ticket..." : "Create Repair Job Card"}
