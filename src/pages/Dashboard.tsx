@@ -881,7 +881,6 @@ export default function Dashboard() {
               className={`stat-card clickable ${isActive ? "active" : ""}`}
               style={{
                 cursor: "pointer",
-                padding: "16px",
                 position: "relative",
               }}
               title={`Click to show ${label} data below`}
