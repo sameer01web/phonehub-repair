@@ -1068,8 +1068,11 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
             {/* TAB 1: DYNAMIC ROWS */}
             {bulkMode === "rows" && (
               <form onSubmit={handleSubmitDynamicRows}>
-                <div style={{ maxHeight: "360px", overflowY: "auto", border: "1px solid #e2e8f0", borderRadius: "6px", marginBottom: "12px" }}>
-                  <table style={{ width: "100%", fontSize: "11px" }}>
+                <div style={{ fontSize: "11px", color: "#64748b", marginBottom: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span>↔️ Swipe horizontally to view all fields (Brand, Model, IMEI, Color, Storage, Issue):</span>
+                </div>
+                <div style={{ maxHeight: "360px", overflowY: "auto", overflowX: "auto", border: "1px solid #cbd5e1", borderRadius: "8px", marginBottom: "12px", WebkitOverflowScrolling: "touch" }}>
+                  <table style={{ minWidth: "660px", width: "100%", fontSize: "11px", borderCollapse: "collapse" }}>
                     <thead style={{ background: "#f8fafc", position: "sticky", top: 0, zIndex: 1 }}>
                       <tr>
                         <th style={{ width: "40px" }}>#</th>
@@ -1182,14 +1185,14 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                   </table>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", marginBottom: "14px" }}>
                   <button
                     type="button"
                     className="secondary-btn"
                     onClick={addDynamicRow}
-                    style={{ fontSize: "12px", padding: "6px 12px" }}
+                    style={{ fontSize: "12px", padding: "7px 14px", display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}
                   >
-                    <Plus size={14} /> + Add Another Phone Row
+                    <Plus size={15} /> Add Another Phone Row
                   </button>
                   <span style={{ fontSize: "12px", color: "#64748b" }}>
                     Total Handsets to Register: <b>{dynamicRows.filter((r) => r.brand.trim() && r.model.trim()).length}</b>

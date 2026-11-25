@@ -292,7 +292,6 @@ export default function AccessoriesPage() {
       {/* Header */}
       <div className="page-head">
         <div>
-          <div className="eyebrow">WORKSHOP ACCESSORIES & MERCHANDISE</div>
           <h1>Accessories Inventory</h1>
           <p>Chargers, USB cables, mobile covers, tempered glass, earphones, and power banks.</p>
         </div>
