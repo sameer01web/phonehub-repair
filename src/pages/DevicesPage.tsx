@@ -129,6 +129,7 @@ export default function DevicesPage() {
   const [editStatus, setEditStatus] = useState("received");
   const [editPurchaseCost, setEditPurchaseCost] = useState("0");
   const [editNotes, setEditNotes] = useState("");
+  const [editIssue, setEditIssue] = useState("");
 
   async function loadData() {
     setLoading(true);
@@ -391,15 +392,17 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
   // Edit Device
   function startEditDevice(dev: Device) {
     setEditingDevice(dev);
-    setEditBrand(dev.brand);
-    setEditModel(dev.model);
+    setEditBrand(dev.brand || "");
+    setEditModel(dev.model || "");
     setEditImei(dev.imei || dev.imei1 || "");
     setEditColor(dev.color || "Black");
     setEditStorage(dev.storage_capacity || "128GB");
     setEditCondition((dev.condition as DeviceCondition) || "Good");
     setEditStatus(normalizeDeviceStatus(dev.status));
     setEditPurchaseCost(String(dev.purchase_cost || 0));
-    setEditNotes(dev.notes || "");
+    setEditIssue(dev.initial_issue || "");
+    const cleanNotes = (dev.notes || "").replace(/\[.*?\]\s*/, "").trim();
+    setEditNotes(cleanNotes);
   }
 
   async function handleUpdateDevice(e: React.FormEvent) {
@@ -414,13 +417,13 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
         imei: editImei.trim() || undefined,
         color: editColor.trim(),
         storage_capacity: editStorage.trim(),
-        condition: editingDevice.condition,
+        initial_issue: editIssue.trim() || undefined,
         status: editStatus,
-        purchase_cost: editingDevice.purchase_cost,
-        notes: editNotes.trim() || null,
+        purchase_cost: Number(editPurchaseCost || 0),
+        notes: editNotes.trim(),
       });
       setEditingDevice(null);
-      setSuccessMsg(`Handset "${editBrand} ${editModel}" updated.`);
+      setSuccessMsg(`Handset "${editBrand} ${editModel}" updated successfully.`);
       setTimeout(() => setSuccessMsg(null), 4000);
       await loadData();
     } catch (err: any) {
@@ -1362,6 +1365,25 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                   style={{ width: "100%" }}
                   minWidth="100%"
                   height="38px"
+                />
+              </label>
+
+              <label>
+                Purchase / Intake Cost (₹)
+                <input
+                  type="number"
+                  min="0"
+                  value={editPurchaseCost}
+                  onChange={(e) => setEditPurchaseCost(e.target.value)}
+                />
+              </label>
+
+              <label style={{ gridColumn: "1 / -1" }}>
+                Reported Complaint / Issue
+                <input
+                  placeholder="e.g. Broken screen display, touch unresponsive"
+                  value={editIssue}
+                  onChange={(e) => setEditIssue(e.target.value)}
                 />
               </label>
             </div>

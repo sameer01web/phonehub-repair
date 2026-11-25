@@ -213,13 +213,50 @@ export async function updateDevice(id: string, updates: Partial<Device>): Promis
   if (updates.model !== undefined) payload.model = updates.model;
   if (updates.status !== undefined) payload.status = normalizeDeviceStatus(updates.status);
   if (updates.purchase_cost !== undefined) payload.purchase_cost = Number(updates.purchase_cost || 0);
-  if (updates.notes !== undefined) payload.notes = updates.notes;
   if (updates.serial_number !== undefined) payload.serial_number = updates.serial_number;
   if (updates.shipment_id !== undefined) payload.shipment_id = updates.shipment_id || null;
 
   const imeiCandidate = updates.imei || updates.imei1;
   if (imeiCandidate !== undefined) {
     payload.imei = imeiCandidate ? imeiCandidate.replace(/\s+/g, "") : null;
+  }
+
+  // Construct structured metadata in notes to guarantee schema safety
+  if (
+    updates.color !== undefined ||
+    updates.storage_capacity !== undefined ||
+    updates.initial_issue !== undefined ||
+    updates.notes !== undefined
+  ) {
+    const { data: currentDev } = await supabase.from("devices").select("notes").eq("id", id).maybeSingle();
+    let currentColor = updates.color;
+    let currentStorage = updates.storage_capacity;
+    let currentIssue = updates.initial_issue;
+    let baseNotes = updates.notes !== undefined ? (updates.notes || "") : "";
+
+    if (currentDev?.notes) {
+      const matchColor = currentDev.notes.match(/Color:\s*([^|\]]+)/i);
+      const matchStorage = currentDev.notes.match(/Storage:\s*([^|\]]+)/i);
+      const matchIssue = currentDev.notes.match(/Issue:\s*([^|\]]+)/i);
+      if (currentColor === undefined && matchColor) currentColor = matchColor[1].trim();
+      if (currentStorage === undefined && matchStorage) currentStorage = matchStorage[1].trim();
+      if (currentIssue === undefined && matchIssue) currentIssue = matchIssue[1].trim();
+      if (updates.notes === undefined) {
+        baseNotes = currentDev.notes.replace(/\[.*?\]\s*/, "").trim();
+      }
+    }
+
+    const metaParts: string[] = [];
+    if (currentColor) metaParts.push(`Color: ${currentColor}`);
+    if (currentStorage) metaParts.push(`Storage: ${currentStorage}`);
+    if (currentIssue) metaParts.push(`Issue: ${currentIssue}`);
+
+    let combinedNotes = baseNotes.replace(/\[.*?\]\s*/, "").trim();
+    if (metaParts.length > 0) {
+      const metaTag = `[${metaParts.join(" | ")}]`;
+      combinedNotes = combinedNotes ? `${metaTag} ${combinedNotes}` : metaTag;
+    }
+    payload.notes = combinedNotes || null;
   }
 
   const { data, error } = await supabase
@@ -240,9 +277,25 @@ export async function updateDevice(id: string, updates: Partial<Device>): Promis
     );
   }
 
+  let parsedColor = data.color;
+  let parsedStorage = data.storage_capacity;
+  let parsedIssue = data.initial_issue;
+  if (data.notes) {
+    const matchColor = data.notes.match(/Color:\s*([^|\]]+)/i);
+    const matchStorage = data.notes.match(/Storage:\s*([^|\]]+)/i);
+    const matchIssue = data.notes.match(/Issue:\s*([^|\]]+)/i);
+    if (matchColor && !parsedColor) parsedColor = matchColor[1].trim();
+    if (matchStorage && !parsedStorage) parsedStorage = matchStorage[1].trim();
+    if (matchIssue && !parsedIssue) parsedIssue = matchIssue[1].trim();
+  }
+
   return {
     ...data,
     imei1: data.imei,
+    color: parsedColor || "Black",
+    storage_capacity: parsedStorage || "128GB",
+    initial_issue: parsedIssue || null,
+    condition: data.condition || data.condition_grade || "Good",
   } as Device;
 }
 
@@ -260,9 +313,19 @@ export async function deleteDevice(id: string): Promise<void> {
     );
   }
 
-  // Clean up non-critical child references if present
+  // 1. Try invoking secure delete_device RPC function first (if migration 007 is installed)
   try {
+    const { error: rpcErr } = await supabase.rpc("delete_device", { target_device_id: id });
+    if (!rpcErr) return;
+  } catch {
+    // Continue with client deletion fallback
+  }
+
+  // 2. Clean up non-critical child references if present before deleting device
+  try {
+    await supabase.from("device_timeline").delete().eq("device_id", id);
     await supabase.from("device_cost_entries").delete().eq("device_id", id);
+    await supabase.from("qc_checks").delete().eq("device_id", id);
     await supabase.from("inspections").delete().eq("device_id", id);
   } catch (err) {
     console.warn("Pre-delete cleanup warning:", err);
@@ -270,6 +333,11 @@ export async function deleteDevice(id: string): Promise<void> {
 
   const { error } = await supabase.from("devices").delete().eq("id", id);
   if (error) {
+    if (error.code === "23503" && error.message.includes("device_timeline")) {
+      throw new Error(
+        "Cannot delete handset due to database timeline audit constraint. Please run migration 007_allow_device_deletion.sql in your Supabase SQL Editor once, or mark handset status as 'Scrapped' instead."
+      );
+    }
     if (error.code === "23503" && error.message.includes("inspections")) {
       throw new Error(
         "Cannot delete handset: It has intake inspections linked to it. For workshop audit compliance, handsets with inspection logs cannot be permanently deleted. Mark handset status as 'Scrapped' instead."
