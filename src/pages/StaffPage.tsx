@@ -81,14 +81,31 @@ export default function StaffPage() {
     try {
       const updatedName = editFullName.trim();
       if (supabase) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            full_name: updatedName,
-            role: editRole,
-          })
-          .eq("id", editingStaff.id);
-        if (error) throw error;
+        // 1. Try secure update_staff_member RPC first
+        const { error: rpcErr } = await supabase.rpc("update_staff_member", {
+          target_user_id: editingStaff.id,
+          new_full_name: updatedName,
+          new_role: editRole,
+        });
+
+        // 2. If RPC not available, fallback to direct update
+        if (rpcErr) {
+          const { error: directErr } = await supabase
+            .from("profiles")
+            .update({
+              full_name: updatedName,
+              role: editRole,
+            })
+            .eq("id", editingStaff.id);
+          if (directErr) {
+            if (directErr.code === "42501" || directErr.message?.includes("permission denied")) {
+              throw new Error(
+                "Permission Denied: Supabase database me profiles update permission missing hai. Kripya Supabase SQL Editor me 008_grant_profiles_permissions.sql query run karein."
+              );
+            }
+            throw directErr;
+          }
+        }
       }
       setStaff((prev) =>
         prev.map((s) =>
@@ -98,6 +115,8 @@ export default function StaffPage() {
         )
       );
       setEditingStaff(null);
+      setStatusMessage({ type: "success", text: `Staff profile "${updatedName}" updated successfully.` });
+      setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: any) {
       alert(err?.message || "Failed to update staff profile");
     } finally {
