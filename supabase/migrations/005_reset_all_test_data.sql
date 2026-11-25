@@ -1,45 +1,36 @@
 -- ==============================================================================
--- 005: PHONE HUB OPERATIONAL TEST DATA RESET & PERMISSION FIX
+-- 005: PHONE HUB OPERATIONAL TEST DATA RESET (FK SAFE)
 -- ==============================================================================
 -- Run this script in the Supabase Dashboard SQL Editor (https://supabase.com/dashboard)
--- It safely purges all test/demo operational data in foreign-key dependency order,
--- and grants standard DELETE permissions so authorized Owners can manage records.
---
--- PRESERVED ASSETS:
--- - All Authentication accounts (auth.users)
--- - All 4 Staff & Owner profiles (public.profiles)
--- - All database tables, columns, constraints, RLS policies, and FIFO RPC functions.
+-- It safely and completely purges all test/demo operational data while strictly
+-- preserving your 4 Staff Profiles (aziz, technicians) and Auth accounts.
 -- ==============================================================================
 
-BEGIN;
+-- Option A: Instant Truncate with Cascade (Recommended - Immune to foreign key order)
+TRUNCATE TABLE
+  public.inventory_batch_movements,
+  public.stock_ledger,
+  public.inventory_batches,
+  public.goods_receipt_items,
+  public.goods_receipts,
+  public.purchase_order_items,
+  public.purchase_orders,
+  public.job_assignments,
+  public.inspections,
+  public.qc_checks,
+  public.device_cost_entries,
+  public.device_timeline,
+  public.job_cards,
+  public.devices,
+  public.shipments,
+  public.spare_parts,
+  public.suppliers
+CASCADE;
 
--- 1. Delete child transactional records
-DELETE FROM public.job_assignments;
-DELETE FROM public.inspections;
-DELETE FROM public.qc_checks;
-DELETE FROM public.device_cost_entries;
-DELETE FROM public.device_timeline;
-DELETE FROM public.stock_ledger;
-DELETE FROM public.inventory_batches;
-DELETE FROM public.goods_receipt_items;
-DELETE FROM public.purchase_order_items;
-
--- 2. Delete parent operational records
-DELETE FROM public.goods_receipts;
-DELETE FROM public.purchase_orders;
-DELETE FROM public.job_cards;
-DELETE FROM public.devices;
-DELETE FROM public.shipments;
-DELETE FROM public.spare_parts;
-DELETE FROM public.suppliers;
-
--- 3. Grant table DELETE permissions to authenticated users
--- (This ensures the authenticated owner account can delete records from the app UI)
+-- Grant table DELETE permissions to authenticated staff for future UI operations
 GRANT DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
 
-COMMIT;
-
--- 4. Verification Query: Confirm 0 operational records and preserved staff profiles
+-- Verification: Check remaining counts
 SELECT 'devices' AS table_name, count(*) AS remaining FROM public.devices
 UNION ALL
 SELECT 'job_cards', count(*) FROM public.job_cards
@@ -59,5 +50,7 @@ UNION ALL
 SELECT 'inventory_batches', count(*) FROM public.inventory_batches
 UNION ALL
 SELECT 'stock_ledger', count(*) FROM public.stock_ledger
+UNION ALL
+SELECT 'inventory_batch_movements', count(*) FROM public.inventory_batch_movements
 UNION ALL
 SELECT 'profiles (PRESERVED STAFF)', count(*) FROM public.profiles;
