@@ -88,6 +88,16 @@ export default function CustomSelect({
     <div
       ref={containerRef}
       className={`custom-select-container ${className}`}
+      onClick={(e) => {
+        // Prevent events from bubbling to any parent <label> element which would re-trigger click on the button
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+      }}
       style={{
         position: "relative",
         display: style?.width === "100%" ? "block" : "inline-block",
@@ -100,7 +110,11 @@ export default function CustomSelect({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!disabled) setIsOpen((prev) => !prev);
+        }}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         style={{
@@ -163,6 +177,15 @@ export default function CustomSelect({
       {isOpen && (
         <div
           role="listbox"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
           style={{
             position: "absolute",
             top: "calc(100% + 5px)",
@@ -189,7 +212,18 @@ export default function CustomSelect({
                 key={opt.value}
                 role="option"
                 aria-selected={isSelected}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   onChange(opt.value);
                   setIsOpen(false);
                 }}

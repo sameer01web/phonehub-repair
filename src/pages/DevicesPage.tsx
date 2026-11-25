@@ -967,8 +967,8 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                 />
               </label>
 
-              <label style={{ display: "grid", gap: "7px" }}>
-                Storage Capacity
+              <div style={{ display: "grid", gap: "7px" }}>
+                <span style={{ fontSize: "11px", color: "#687b92", fontWeight: 600 }}>Storage Capacity</span>
                 <CustomSelect
                   value={formStorage}
                   onChange={(val) => setFormStorage(val)}
@@ -977,7 +977,7 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                   minWidth="100%"
                   height="38px"
                 />
-              </label>
+              </div>
 
               <label>
                 Received / Purchase Date
@@ -1347,8 +1347,8 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                 <input value={editColor} onChange={(e) => setEditColor(e.target.value)} />
               </label>
 
-              <label style={{ display: "grid", gap: "7px" }}>
-                Storage
+              <div style={{ display: "grid", gap: "7px" }}>
+                <span style={{ fontSize: "11px", color: "#687b92", fontWeight: 600 }}>Storage</span>
                 <CustomSelect
                   value={editStorage}
                   onChange={(val) => setEditStorage(val)}
@@ -1357,10 +1357,10 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                   minWidth="100%"
                   height="38px"
                 />
-              </label>
+              </div>
 
-              <label style={{ display: "grid", gap: "7px" }}>
-                Status *
+              <div style={{ display: "grid", gap: "7px" }}>
+                <span style={{ fontSize: "11px", color: "#687b92", fontWeight: 600 }}>Status *</span>
                 <CustomSelect
                   value={editStatus}
                   onChange={(val) => setEditStatus(val)}
@@ -1369,7 +1369,7 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
                   minWidth="100%"
                   height="38px"
                 />
-              </label>
+              </div>
 
               <label>
                 Purchase / Intake Cost (₹)
