@@ -286,9 +286,20 @@ export default function DevicesPage() {
       const res = await bulkImportDevices(payload);
       setBulkResult(res);
       if (res.successCount > 0) {
-        setSuccessMsg(`Successfully imported ${res.successCount} handset(s) into inventory.`);
+        setSuccessMsg(`Successfully registered ${res.successCount} phone(s) into inventory.`);
         setTimeout(() => setSuccessMsg(null), 4000);
         await loadData();
+
+        // Auto-close modal when all phones are registered without error
+        if (res.errors.length === 0) {
+          setShowBulkModal(false);
+          setDynamicRows([
+            { id: "1", brand: "", model: "", imei: "", color: "Black", storage: "128GB", condition: "Good", cost: "", issue: "" },
+            { id: "2", brand: "", model: "", imei: "", color: "Black", storage: "128GB", condition: "Good", cost: "", issue: "" },
+            { id: "3", brand: "", model: "", imei: "", color: "Black", storage: "128GB", condition: "Good", cost: "", issue: "" },
+          ]);
+          setBulkResult(null);
+        }
       }
     } catch (err: any) {
       setError(err?.message || "Bulk row entry failed");
@@ -340,9 +351,16 @@ export default function DevicesPage() {
       const res = await bulkImportDevices(rows);
       setBulkResult(res);
       if (res.successCount > 0) {
-        setSuccessMsg(`Imported ${res.successCount} handsets from CSV.`);
+        setSuccessMsg(`Imported ${res.successCount} handsets from CSV into inventory.`);
         setTimeout(() => setSuccessMsg(null), 4000);
         await loadData();
+
+        // Auto-close modal when all phones from CSV import succeed
+        if (res.errors.length === 0) {
+          setShowBulkModal(false);
+          setBulkCsvText("");
+          setBulkResult(null);
+        }
       }
     } catch (err: any) {
       setError(err?.message || "CSV import failed");
