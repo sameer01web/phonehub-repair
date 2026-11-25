@@ -70,24 +70,40 @@ export async function createSparePart(part: Partial<Part> & { sku: string }): Pr
   if (!supabase) throw new Error("Supabase is not configured.");
   const cost = Number(part.unit_cost ?? part.purchase_price ?? 0);
   const stock = Number(part.current_stock ?? part.quantity ?? 0);
-  const reorder = Number(part.reorder_level ?? 5);
+  const reorder = Number(part.reorder_level ?? part.minimum_stock ?? 5);
   const category = part.category || inferPartCategory(part.part_name || part.name, part.sku, "General");
 
-  const payload: any = {
+  const basePayload: any = {
     sku: part.sku.trim().toUpperCase(),
-    part_name: part.part_name || part.name,
-    category: category,
+    part_name: part.part_name || part.name || part.sku.trim(),
     current_stock: stock,
     purchase_price: cost,
     selling_price: Number(part.selling_price ?? 0),
     minimum_stock: reorder,
     compatible_models: part.compatible_models || "",
+    is_active: true,
   };
-  const { data, error } = await supabase.from("spare_parts").insert(payload).select().single();
-  if (error) throw error;
+
+  // Resilient insert: Try with category first; if schema does not have 'category' column (PGRST204), fall back to basePayload
+  let data: any;
+  const attemptWithCategory = await supabase.from("spare_parts").insert({ ...basePayload, category }).select().single();
+
+  if (attemptWithCategory.error) {
+    const errCode = attemptWithCategory.error.code;
+    const errMsg = (attemptWithCategory.error.message || "").toLowerCase();
+    if (errCode === "PGRST204" || errMsg.includes("category") || errCode === "42703") {
+      const fallbackAttempt = await supabase.from("spare_parts").insert(basePayload).select().single();
+      if (fallbackAttempt.error) throw fallbackAttempt.error;
+      data = fallbackAttempt.data;
+    } else {
+      throw attemptWithCategory.error;
+    }
+  } else {
+    data = attemptWithCategory.data;
+  }
 
   // If opening stock > 0, record initial batch in inventory_batches and ledger
-  if (stock > 0) {
+  if (stock > 0 && data?.id) {
     try {
       await supabase.from("inventory_batches").insert({
         spare_part_id: data.id,
@@ -127,7 +143,6 @@ export async function updateSparePart(id: string, updates: Partial<Part>): Promi
   if (!supabase) throw new Error("Supabase is not configured.");
   const payload: any = {};
   if (updates.part_name || updates.name) payload.part_name = updates.part_name || updates.name;
-  if (updates.category !== undefined) payload.category = updates.category;
   if (updates.current_stock !== undefined || updates.quantity !== undefined) {
     payload.current_stock = Number(updates.current_stock ?? updates.quantity);
   }
@@ -140,8 +155,24 @@ export async function updateSparePart(id: string, updates: Partial<Part>): Promi
   if (updates.compatible_models !== undefined) payload.compatible_models = updates.compatible_models;
   if (updates.sku) payload.sku = updates.sku.trim().toUpperCase();
 
-  const { data, error } = await supabase.from("spare_parts").update(payload).eq("id", id).select().single();
-  if (error) throw error;
+  let data: any;
+  if (updates.category !== undefined) {
+    const attempt = await supabase.from("spare_parts").update({ ...payload, category: updates.category }).eq("id", id).select().single();
+    if (attempt.error && (attempt.error.code === "PGRST204" || (attempt.error.message || "").toLowerCase().includes("category"))) {
+      const fallback = await supabase.from("spare_parts").update(payload).eq("id", id).select().single();
+      if (fallback.error) throw fallback.error;
+      data = fallback.data;
+    } else if (attempt.error) {
+      throw attempt.error;
+    } else {
+      data = attempt.data;
+    }
+  } else {
+    const { data: updated, error } = await supabase.from("spare_parts").update(payload).eq("id", id).select().single();
+    if (error) throw error;
+    data = updated;
+  }
+
   return {
     ...data,
     name: data.part_name || data.name,
