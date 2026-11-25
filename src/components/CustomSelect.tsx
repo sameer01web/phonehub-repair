@@ -14,9 +14,13 @@ interface CustomSelectProps {
   label?: string;
   placeholder?: string;
   style?: React.CSSProperties;
+  triggerStyle?: React.CSSProperties;
   className?: string;
   minWidth?: string | number;
   height?: string | number;
+  disabled?: boolean;
+  align?: "left" | "right";
+  menuWidth?: string | number;
 }
 
 export default function CustomSelect({
@@ -26,9 +30,13 @@ export default function CustomSelect({
   label,
   placeholder = "Select...",
   style,
+  triggerStyle,
   className = "",
   minWidth = "140px",
   height,
+  disabled = false,
+  align = "left",
+  menuWidth,
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,7 +99,8 @@ export default function CustomSelect({
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         style={{
@@ -102,20 +111,21 @@ export default function CustomSelect({
           justifyContent: "space-between",
           gap: "8px",
           padding: "0 10px 0 12px",
-          background: "#ffffff",
+          background: disabled ? "#f8fafc" : "#ffffff",
           border: isOpen ? "1.5px solid #0176d3" : "1.5px solid #cbd5e1",
           borderRadius: "8px",
           boxShadow: isOpen
             ? "0 0 0 3px rgba(1, 118, 211, 0.16)"
             : "0 1px 2px rgba(0, 0, 0, 0.04)",
-          cursor: "pointer",
+          cursor: disabled ? "not-allowed" : "pointer",
           fontSize: "12.5px",
           fontFamily: "inherit",
-          color: "#1e293b",
+          color: disabled ? "#94a3b8" : "#1e293b",
           transition: "all 0.18s ease",
           outline: "none",
           textAlign: "left",
           boxSizing: "border-box",
+          ...triggerStyle,
         }}
       >
         <span
@@ -156,8 +166,9 @@ export default function CustomSelect({
           style={{
             position: "absolute",
             top: "calc(100% + 5px)",
-            left: 0,
-            width: "100%",
+            ...(align === "right" ? { right: 0 } : { left: 0 }),
+            width: menuWidth || "100%",
+            minWidth: menuWidth || "100%",
             boxSizing: "border-box",
             background: "#ffffff",
             border: "1px solid #e2e8f0",

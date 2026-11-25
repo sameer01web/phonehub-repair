@@ -24,6 +24,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import CustomSelect from "./CustomSelect";
 
 interface NavItem {
   label: string;
@@ -283,25 +284,34 @@ export default function Layout() {
               <span className="role-preview-label" style={{ fontSize: "11px", color: "#64748b" }} title="Preview UI permissions in browser (cannot grant backend DB rights)">
                 Role Preview:
               </span>
-              <select
+              <CustomSelect
                 value={currentRole || ""}
-                onChange={(e) => switchRole(e.target.value)}
+                onChange={(val) => switchRole(val)}
                 disabled={!user || !role}
-                className="role-selector"
-                style={{
+                align="right"
+                minWidth="95px"
+                height="32px"
+                menuWidth="195px"
+                triggerStyle={{
+                  height: "32px",
+                  padding: "0 8px 0 10px",
+                  fontSize: "11.5px",
+                  fontWeight: 600,
+                  borderRadius: "7px",
                   background: currentRole ? "#ffffff" : "#fee2e2",
                   color: currentRole ? "#0f172a" : "#991b1b",
-                  cursor: currentRole ? "pointer" : "not-allowed",
+                  border: "1.5px solid #cbd5e1",
                 }}
-              >
-                {!currentRole && <option value="">No Verified Role</option>}
-                <option value="owner">Owner</option>
-                <option value="workshop_manager">Workshop Manager</option>
-                <option value="technician">Technician</option>
-                <option value="inventory">Inventory / Warehouse</option>
-                <option value="qc_inspector">QC Inspector</option>
-                <option value="procurement">Procurement</option>
-              </select>
+                options={[
+                  ...(!currentRole ? [{ value: "", label: "No Verified Role" }] : []),
+                  { value: "owner", label: "Owner" },
+                  { value: "workshop_manager", label: "Workshop Manager" },
+                  { value: "technician", label: "Technician" },
+                  { value: "inventory", label: "Inventory / Warehouse" },
+                  { value: "qc_inspector", label: "QC Inspector" },
+                  { value: "procurement", label: "Procurement" },
+                ]}
+              />
             </div>
 
             {user ? (
