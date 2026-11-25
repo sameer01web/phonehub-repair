@@ -366,7 +366,8 @@ export default function StaffPage() {
           <Users size={18} className="muted" />
         </div>
 
-        <div className="table-wrap" style={{ marginTop: "12px" }}>
+        {/* Desktop Table */}
+        <div className="table-wrap desktop-staff-table" style={{ marginTop: "12px" }}>
           <table>
             <thead>
               <tr>
@@ -609,6 +610,188 @@ export default function StaffPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Touch-Friendly Staff Cards */}
+        <div className="mobile-staff-cards" style={{ marginTop: "12px" }}>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+              Loading workshop staff profiles...
+            </div>
+          ) : staff.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "34px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+              No staff profiles registered yet.
+            </div>
+          ) : (
+            staff.map((member) => {
+              const roleConfig = ROLES.find((r) => r.value === member.role) || {
+                label: member.role,
+                color: "#64748b",
+                bg: "#f1f5f9",
+              };
+
+              const activeJobCount = jobs.filter(
+                (j) =>
+                  j.status !== "completed" &&
+                  j.status !== "delivered" &&
+                  j.assignments?.some((a) => a.technician_id === member.id)
+              ).length;
+
+              const repairedCount = jobs.filter(
+                (j) =>
+                  (j.status === "completed" || j.status === "delivered") &&
+                  j.assignments?.some((a) => a.technician_id === member.id)
+              ).length;
+
+              const isActive = isStaffMemberActive(member);
+              const isSelf = member.id === user?.id;
+
+              return (
+                <div
+                  key={member.id}
+                  className="mobile-staff-card"
+                  style={{
+                    opacity: isActive ? 1 : 0.42,
+                    background: isActive ? "#ffffff" : "rgba(241, 245, 249, 0.5)",
+                    filter: isActive ? "none" : "grayscale(25%)",
+                    transition: "all 0.25s ease",
+                  }}
+                >
+                  {/* Header: Avatar, Name, Role & Status Toggle */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "50%",
+                          background: "#e0f2fe",
+                          color: "#0369a1",
+                          fontWeight: 700,
+                          display: "grid",
+                          placeItems: "center",
+                          fontSize: "13px",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {(member.full_name?.trim() || (member.role === "technician" ? "T" : "S"))[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <b style={{ color: "#1e293b", fontSize: "14px" }}>
+                            {member.full_name?.trim() || (member.role === "technician" ? "Technician" : "Staff Member")}
+                          </b>
+                          {isSelf && (
+                            <span style={{ fontSize: "9px", fontWeight: 700, background: "#dcfce7", color: "#166534", padding: "1px 5px", borderRadius: "8px" }}>
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            padding: "2px 8px",
+                            borderRadius: "10px",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            background: roleConfig.bg,
+                            color: roleConfig.color,
+                            marginTop: "3px",
+                          }}
+                        >
+                          {roleConfig.label}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Active Toggle Switch */}
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isActive}
+                      disabled={isSelf || togglingId === member.id}
+                      onClick={() => handleToggleActive(member)}
+                      style={{
+                        position: "relative",
+                        width: "44px",
+                        height: "22px",
+                        borderRadius: "11px",
+                        background: isSelf ? "#cbd5e1" : isActive ? "#15803d" : "#94a3b8",
+                        border: "none",
+                        cursor: isSelf ? "not-allowed" : "pointer",
+                        padding: 0,
+                        flexShrink: 0,
+                        transition: "background 0.25s ease",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "2px",
+                          left: isActive ? "24px" : "2px",
+                          width: "18px",
+                          height: "18px",
+                          borderRadius: "50%",
+                          background: "#ffffff",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                          transition: "left 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Metrics Box */}
+                  <div className="mobile-part-metrics" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Repairs Completed</span>
+                      <b style={{ fontSize: "13px", color: repairedCount > 0 ? "#15945b" : "#64748b" }}>
+                        ✓ {repairedCount} phones
+                      </b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Active Bench Work</span>
+                      <b style={{ fontSize: "13px", color: activeJobCount > 0 ? "#e68a2e" : "#64748b" }}>
+                        🔧 {activeJobCount} in progress
+                      </b>
+                    </div>
+                  </div>
+
+                  {/* Footer & Actions */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px dashed #e2e8f0" }}>
+                    <span style={{ fontFamily: "monospace", fontSize: "10px", color: "#94a3b8" }}>
+                      ID: {member.id.slice(0, 8)}…
+                    </span>
+
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        style={{ padding: "4px 10px", fontSize: "11px" }}
+                        onClick={() => startEditStaff(member)}
+                      >
+                        <Edit2 size={12} style={{ marginRight: 3 }} /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        disabled={isSelf}
+                        onClick={() => handleDeleteStaff(member)}
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: "11px",
+                          color: isSelf ? "#cbd5e1" : "#b42318",
+                          borderColor: isSelf ? "#e2e8f0" : "#fecaca",
+                          cursor: isSelf ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

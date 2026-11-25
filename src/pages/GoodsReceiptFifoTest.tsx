@@ -353,7 +353,8 @@ export default function GoodsReceiptFifoTest() {
           <span className="count">{currentList.length} receipt notes</span>
         </div>
 
-        <div className="table-wrap">
+        {/* Desktop Table */}
+        <div className="table-wrap desktop-grntest-table">
           <table>
             <thead>
               <tr>
@@ -530,6 +531,96 @@ export default function GoodsReceiptFifoTest() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Touch-Friendly GRN Receipt Cards */}
+        <div className="mobile-grntest-cards">
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+              Loading goods receipts from database…
+            </div>
+          ) : currentList.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "30px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+              {activeTab === "pending"
+                ? "All supplier deliveries have been allocated to FIFO stock! New receipts created in Procurement will appear here."
+                : "No goods receipts found in this category."}
+            </div>
+          ) : (
+            currentList.map((receipt) => {
+              const isProcessingThis = isProcessing && processingId === receipt.id;
+              const isTest = receipt.is_test_receipt || receipt.grn_number?.toUpperCase() === "TEST-GRN-001";
+
+              return (
+                <div key={receipt.id} className="mobile-grntest-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <b style={{ color: "#0176d3", fontSize: "14px" }}>
+                        <code>{receipt.grn_number || receipt.id.slice(0, 8)}</code>
+                      </b>
+                      {isTest && (
+                        <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", marginLeft: "6px", fontSize: "9px", fontWeight: 700 }}>
+                          BASELINE GRN
+                        </span>
+                      )}
+                      <div style={{ fontSize: "12.5px", color: "#1e293b", fontWeight: 600, marginTop: "2px" }}>
+                        {receipt.supplier_name || "Authorized Parts Supplier"}
+                      </div>
+                    </div>
+                    {receipt.is_processed ? (
+                      <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", fontWeight: 700, fontSize: "10.5px" }}>
+                        <CheckCircle2 size={11} style={{ marginRight: 3 }} /> Allocated
+                      </span>
+                    ) : (
+                      <span className="tag" style={{ background: "#fef3c7", color: "#92400e", fontWeight: 700, fontSize: "10.5px" }}>
+                        <Clock size={11} style={{ marginRight: 3 }} /> Pending Inward
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "#64748b", background: "#f8fafc", padding: "8px 10px", borderRadius: "6px" }}>
+                    <span>Ref: <b>{receipt.po_number ? `PO #${receipt.po_number}` : "Direct Consignment"}</b></span>
+                    <span>
+                      {receipt.received_date ? new Date(receipt.received_date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                    </span>
+                  </div>
+
+                  {receipt.notes && (
+                    <div style={{ fontSize: "10.5px", color: "#8292a8", fontStyle: "italic" }}>
+                      {receipt.notes}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", paddingTop: "8px", borderTop: "1px dashed #e2e8f0" }}>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ padding: "6px 10px", fontSize: "11.5px", flex: 1, justifyContent: "center" }}
+                      onClick={() => handleViewReceipt(receipt)}
+                    >
+                      <Eye size={13} /> View Items
+                    </button>
+
+                    {!receipt.is_processed ? (
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: "6px 12px", fontSize: "11.5px", flex: 1, justifyContent: "center" }}
+                        onClick={() => handleProcessReceipt(receipt)}
+                        disabled={isProcessingThis || !isAuthorizedForFifo}
+                      >
+                        <Layers size={13} />
+                        {isProcessingThis ? "Allocating..." : "Inward to FIFO"}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: 600, padding: "6px 10px", textAlign: "center" }}>
+                        Inwarded ✓
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

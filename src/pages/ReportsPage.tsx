@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { getSpareParts, getInventoryBatches, getStockLedger } from "../lib/inventory";
 import { getAccessories } from "../lib/accessories";
+import CustomSelect from "../components/CustomSelect";
 import {
   getDevices,
   getJobCards,
@@ -346,7 +347,9 @@ export default function ReportsPage() {
             fontSize: "13px",
           }}
         >
-          <Users size={16} /> Technician Performance Tracking
+          <Users size={16} />
+          <span className="desktop-tab-label">Technician Performance Tracking</span>
+          <span className="mobile-tab-label">Technicians</span>
         </button>
 
         <button
@@ -365,7 +368,9 @@ export default function ReportsPage() {
             fontSize: "13px",
           }}
         >
-          <Wrench size={16} /> Repair Operations & Pipeline
+          <Wrench size={16} />
+          <span className="desktop-tab-label">Repair Operations & Pipeline</span>
+          <span className="mobile-tab-label">Operations</span>
         </button>
 
         <button
@@ -384,7 +389,9 @@ export default function ReportsPage() {
             fontSize: "13px",
           }}
         >
-          <Layers size={16} /> Spare Parts FIFO & Consumption
+          <Layers size={16} />
+          <span className="desktop-tab-label">Spare Parts FIFO & Consumption</span>
+          <span className="mobile-tab-label">Spare Parts</span>
         </button>
 
         <button
@@ -403,7 +410,9 @@ export default function ReportsPage() {
             fontSize: "13px",
           }}
         >
-          <ShieldCheck size={16} /> Quality Control & Rework Audit
+          <ShieldCheck size={16} />
+          <span className="desktop-tab-label">Quality Control & Rework Audit</span>
+          <span className="mobile-tab-label">QC Audit</span>
         </button>
 
         <button
@@ -422,7 +431,9 @@ export default function ReportsPage() {
             fontSize: "13px",
           }}
         >
-          <Headphones size={16} /> Accessories & Merchandise
+          <Headphones size={16} />
+          <span className="desktop-tab-label">Accessories & Merchandise</span>
+          <span className="mobile-tab-label">Accessories</span>
         </button>
       </div>
 
@@ -439,7 +450,7 @@ export default function ReportsPage() {
       >
         <div style={{ display: "flex", flexWrap: "wrap", gap: "14px", alignItems: "center", justifyContent: "space-between" }}>
           {/* Date Range Selector */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "11px", fontWeight: 700, color: "#687b92", textTransform: "uppercase" }}>
               <Calendar size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
               Period:
@@ -450,7 +461,7 @@ export default function ReportsPage() {
                 type="button"
                 onClick={() => setDateRange(r)}
                 style={{
-                  padding: "5px 11px",
+                  padding: "5px 10px",
                   fontSize: "11px",
                   fontWeight: 600,
                   borderRadius: "5px",
@@ -461,7 +472,12 @@ export default function ReportsPage() {
                   color: dateRange === r ? "#0176d3" : "#4a5568",
                 }}
               >
-                {r === "all" ? "All Time" : r === "today" ? "Today" : r === "week" ? "Last 7 Days" : r === "month" ? "Last 30 Days" : "Custom Range"}
+                <span className="desktop-tab-label">
+                  {r === "all" ? "All Time" : r === "today" ? "Today" : r === "week" ? "Last 7 Days" : r === "month" ? "Last 30 Days" : "Custom Range"}
+                </span>
+                <span className="mobile-tab-label">
+                  {r === "all" ? "All" : r === "today" ? "Today" : r === "week" ? "7D" : r === "month" ? "30D" : "Custom"}
+                </span>
               </button>
             ))}
 
@@ -485,35 +501,34 @@ export default function ReportsPage() {
           </div>
 
           {/* Technician & Search Filters */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", width: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "11px", fontWeight: 700, color: "#687b92", textTransform: "uppercase" }}>
                 <Users size={13} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
                 Technician:
               </span>
-              <select
+              <CustomSelect
                 value={selectedTechId}
-                onChange={(e) => setSelectedTechId(e.target.value)}
-                style={{
-                  padding: "5px 10px",
-                  fontSize: "12px",
+                onChange={(val) => setSelectedTechId(val)}
+                minWidth="175px"
+                height="32px"
+                triggerStyle={{
+                  height: "32px",
+                  fontSize: "11.5px",
                   fontWeight: 600,
-                  border: "1px solid #cbd5e1",
-                  borderRadius: "5px",
-                  background: "#fff",
-                  color: "#1e293b",
+                  padding: "0 8px 0 10px",
                 }}
-              >
-                <option value="all">All Technicians ({technicianComparison.length})</option>
-                {technicianComparison.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.full_name} ({t.completed}/{t.totalAssigned} done)
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "all", label: `All Technicians (${technicianComparison.length})` },
+                  ...technicianComparison.map((t) => ({
+                    value: t.id,
+                    label: `${t.full_name} (${t.completed}/${t.totalAssigned})`,
+                  })),
+                ]}
+              />
             </div>
 
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: "160px" }}>
               <Search size={14} style={{ position: "absolute", left: "9px", top: "8px", color: "#94a3b8" }} />
               <input
                 type="text"
@@ -525,7 +540,8 @@ export default function ReportsPage() {
                   fontSize: "11px",
                   border: "1px solid #cbd5e1",
                   borderRadius: "5px",
-                  width: "200px",
+                  width: "100%",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
@@ -584,7 +600,7 @@ export default function ReportsPage() {
               <Users size={18} className="muted" />
             </div>
 
-            <div className="table-wrap" style={{ marginTop: "12px" }}>
+            <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
               <table>
                 <thead>
                   <tr>
@@ -717,6 +733,110 @@ export default function ReportsPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Touch Cards for Technician Comparison */}
+            <div className="mobile-reports-tech-cards">
+              {technicianComparison.length === 0 ? (
+                <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+                  No technicians found. Assign technicians to job cards to view workload metrics.
+                </div>
+              ) : (
+                technicianComparison.map((tech) => {
+                  const isSelected = selectedTechId === tech.id;
+                  return (
+                    <div
+                      key={tech.id}
+                      className="mobile-reports-tech-card"
+                      style={{
+                        borderColor: isSelected ? "#0176d3" : "#e2e8f0",
+                        background: isSelected ? "#f0f7ff" : "#ffffff",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              background: "#e0e7ef",
+                              color: "#0176d3",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "12px",
+                              fontWeight: 800,
+                            }}
+                          >
+                            {tech.full_name?.charAt(0) || "T"}
+                          </div>
+                          <div>
+                            <b style={{ color: "#152b49", fontSize: "13px" }}>{tech.full_name}</b>
+                            <div style={{ fontSize: "10.5px", color: "#64748b", textTransform: "capitalize" }}>
+                              {tech.role?.replace(/_/g, " ")}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTechId(isSelected ? "all" : tech.id)}
+                          style={{
+                            padding: "5px 10px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            borderRadius: "6px",
+                            border: isSelected ? "1px solid #0176d3" : "1px solid #cbd5e1",
+                            background: isSelected ? "#0176d3" : "#fff",
+                            color: isSelected ? "#fff" : "#1e293b",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {isSelected ? "Filtered ✓" : "Filter"}
+                        </button>
+                      </div>
+
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", textAlign: "center", background: "#f8fafc", padding: "8px", borderRadius: "8px" }}>
+                        <div>
+                          <div style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase" }}>Assigned</div>
+                          <b style={{ fontSize: "13px", color: "#1e293b" }}>{tech.totalAssigned}</b>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "10px", color: "#15945b", textTransform: "uppercase" }}>Done</div>
+                          <b style={{ fontSize: "13px", color: "#15945b" }}>{tech.completed}</b>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "10px", color: "#e68a2e", textTransform: "uppercase" }}>Active</div>
+                          <b style={{ fontSize: "13px", color: "#e68a2e" }}>{tech.inProgress}</b>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "10px", color: "#b42318", textTransform: "uppercase" }}>Rework</div>
+                          <b style={{ fontSize: "13px", color: "#b42318" }}>{tech.rework}</b>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, marginRight: "12px" }}>
+                          <div style={{ flex: 1, background: "#e2e8f0", height: "6px", borderRadius: "3px", overflow: "hidden" }}>
+                            <div
+                              style={{
+                                width: `${tech.completionRate}%`,
+                                background: tech.completionRate >= 80 ? "#15945b" : tech.completionRate >= 50 ? "#0176d3" : "#e68a2e",
+                                height: "100%",
+                              }}
+                            />
+                          </div>
+                          <span style={{ fontSize: "11px", fontWeight: 700 }}>{tech.completionRate}%</span>
+                        </div>
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: "#152b49" }}>
+                          ₹{tech.totalLabor.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </section>
 
           {/* Individual Technician Repair History Table */}
@@ -734,7 +854,7 @@ export default function ReportsPage() {
               </span>
             </div>
 
-            <div className="table-wrap" style={{ marginTop: "12px" }}>
+            <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
               <table>
                 <thead>
                   <tr>
@@ -955,6 +1075,101 @@ export default function ReportsPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Touch Cards for Repair Jobs Audit */}
+            <div className="mobile-reports-jobs-cards">
+              {visibleJobs.length === 0 ? (
+                <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+                  No repair jobs found matching the active filter criteria.
+                </div>
+              ) : (
+                visibleJobs.map((job) => {
+                  const jobParts = getPartsForJob(job.id);
+                  const totalJobPartsCost = jobParts.reduce(
+                    (sum, p) => sum + Math.abs(Number(p.quantity || 0)) * Number(p.unit_cost || 0),
+                    0
+                  );
+
+                  return (
+                    <div key={job.id} className="mobile-reports-job-card">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <b style={{ color: "#0176d3", fontSize: "13px" }}>
+                            #{job.job_number || job.id.slice(0, 8)}
+                          </b>
+                          <div style={{ fontSize: "10.5px", color: "#94a3b8" }}>
+                            {job.priority} Priority
+                          </div>
+                        </div>
+                        <span
+                          className="tag"
+                          style={{
+                            background:
+                              job.status === "completed"
+                                ? "#e8f8f0"
+                                : job.status === "in_progress"
+                                ? "#fff5eb"
+                                : job.status === "waiting_parts"
+                                ? "#fef2f2"
+                                : "#f1f5f9",
+                            color:
+                              job.status === "completed"
+                                ? "#15945b"
+                                : job.status === "in_progress"
+                                ? "#e68a2e"
+                                : job.status === "waiting_parts"
+                                ? "#b42318"
+                                : "#475569",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {job.status?.replace(/_/g, " ")}
+                        </span>
+                      </div>
+
+                      <div>
+                        <b style={{ color: "#152b49", fontSize: "13px" }}>
+                          {job.device?.brand} {job.device?.model}
+                        </b>
+                        <div style={{ fontSize: "11px", color: "#64748b" }}>
+                          IMEI: {job.device?.imei || job.device?.imei1 || "N/A"}
+                        </div>
+                      </div>
+
+                      <div style={{ background: "#f8fafc", padding: "8px 10px", borderRadius: "6px", fontSize: "11.5px" }}>
+                        <div style={{ fontWeight: 600, color: "#1e293b" }}>{job.complaint || job.title}</div>
+                        {job.diagnosis && (
+                          <div style={{ fontSize: "10.5px", color: "#0176d3", marginTop: "3px" }}>
+                            <b>Diag:</b> {job.diagnosis}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Technicians */}
+                      {job.assignments && job.assignments.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {job.assignments.map((a) => (
+                            <span key={a.technician_id} className="tag" style={{ background: "#edf5fc", color: "#0176d3", fontSize: "10.5px" }}>
+                              {getTechName(a.technician_id)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* FIFO Parts */}
+                      {jobParts.length > 0 && (
+                        <div style={{ fontSize: "11px", color: "#475569", background: "#f1f5f9", padding: "6px 8px", borderRadius: "4px" }}>
+                          <b>Parts:</b> {jobParts.map((p) => `${p.part_name || p.sku} (×${Math.abs(p.quantity)})`).join(", ")}
+                          <div style={{ color: "#0176d3", fontWeight: 700, marginTop: "2px" }}>
+                            Parts Total: ₹{totalJobPartsCost.toLocaleString("en-IN")}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
         </div>
@@ -1230,7 +1445,7 @@ export default function ReportsPage() {
               <Layers size={19} className="muted" />
             </div>
 
-            <div className="table-wrap" style={{ marginTop: "12px" }}>
+            <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
               <table>
                 <thead>
                   <tr>
@@ -1346,7 +1561,7 @@ export default function ReportsPage() {
               <ShieldCheck size={19} className="muted" />
             </div>
 
-            <div className="table-wrap" style={{ marginTop: "12px" }}>
+            <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
               <table>
                 <thead>
                   <tr>
@@ -1472,7 +1687,7 @@ export default function ReportsPage() {
               <Headphones size={19} className="muted" />
             </div>
 
-            <div className="table-wrap" style={{ marginTop: "12px" }}>
+            <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
               <table>
                 <thead>
                   <tr>
@@ -1538,7 +1753,7 @@ export default function ReportsPage() {
                 <AlertTriangle size={19} color="#ea580c" />
               </div>
 
-              <div className="table-wrap" style={{ marginTop: "12px" }}>
+              <div className="table-wrap desktop-reports-table" style={{ marginTop: "12px" }}>
                 <table>
                   <thead>
                     <tr>

@@ -220,7 +220,7 @@ export default function QualityControlPage() {
           <span className="count">{qcList.length} QC audits logged</span>
         </div>
 
-        <div className="table-wrap">
+        <div className="table-wrap desktop-qc-table">
           <table>
             <thead>
               <tr>
@@ -281,6 +281,66 @@ export default function QualityControlPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Touch Cards */}
+        <div className="mobile-qc-cards">
+          {qcList.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+              No QC checks performed yet. Tap "Perform QC Verification" to start.
+            </div>
+          ) : (
+            qcList.map((q) => (
+              <div key={q.id} className="mobile-qc-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    {q.is_passed ? (
+                      <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", fontWeight: 700 }}>
+                        <Check size={11} style={{ display: "inline", marginRight: 3 }} /> PASSED
+                      </span>
+                    ) : (
+                      <span className="tag" style={{ background: "#fff0ef", color: "#b42318", fontWeight: 700 }}>
+                        <XIcon size={11} style={{ display: "inline", marginRight: 3 }} /> REWORK REQUIRED
+                      </span>
+                    )}
+                    <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>
+                      {new Date(q.checked_at).toLocaleString("en-IN")}
+                    </div>
+                  </div>
+                  <span className="tag" style={{ background: "#f1f5f9", color: "#475569", fontWeight: 600 }}>
+                    {q.job_card_id ? `Job #${q.job_card_id.slice(0, 8)}` : "Direct Release"}
+                  </span>
+                </div>
+
+                <div style={{ fontSize: "12px", color: "#334155" }}>
+                  <b>Device:</b> <code>{q.device_id.slice(0, 16)}...</code>
+                </div>
+
+                {!q.is_passed && q.failure_reason && (
+                  <div style={{ background: "#fef2f2", borderLeft: "3px solid #b42318", padding: "6px 8px", borderRadius: "4px", fontSize: "11.5px", color: "#991b1b" }}>
+                    <b>Failure:</b> {q.failure_reason}
+                  </div>
+                )}
+
+                {q.rework_notes && (
+                  <div style={{ fontSize: "11.5px", color: "#475569" }}>
+                    <b>Instructions:</b> {q.rework_notes}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    style={{ padding: "6px 12px", fontSize: "11.5px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                    onClick={() => setSelectedQcForView(q)}
+                  >
+                    <Eye size={13} /> View Audit
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

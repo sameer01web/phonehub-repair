@@ -533,8 +533,8 @@ export default function AccessoriesPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="table-wrap">
+        {/* 1. Desktop View: Table */}
+        <div className="table-wrap desktop-accessories-table">
           <table>
             <thead>
               <tr>
@@ -750,6 +750,157 @@ export default function AccessoriesPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 2. Mobile View: Touch-Friendly Accessory Cards */}
+        <div className="mobile-accessories-cards">
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+              Loading accessories catalogue...
+            </div>
+          ) : displayItems.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "30px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+              <div style={{ marginBottom: "8px" }}>No accessories match your current filters.</div>
+              <button className="primary-btn" onClick={openCreateModal} style={{ fontSize: "11px", padding: "6px 12px" }}>
+                <Plus size={14} /> Add First Accessory
+              </button>
+            </div>
+          ) : (
+            displayItems.map((item) => {
+              const isLow = item.current_stock <= item.minimum_stock;
+              const isOut = item.current_stock <= 0;
+
+              return (
+                <div key={item.id} className="mobile-accessory-card">
+                  {/* Header: Name, SKU, Status */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "14px", color: "#0f172a" }}>
+                        {item.name}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#0176d3", fontFamily: "monospace", marginTop: "2px" }}>
+                        {item.sku}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                      <span className="tag" style={{ fontSize: "10px", padding: "2px 8px", background: "#f1f5f9", color: "#475569" }}>
+                        {item.category}
+                      </span>
+                      {isOut ? (
+                        <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 700, background: "#fee2e2", color: "#dc2626" }}>
+                          Out of Stock
+                        </span>
+                      ) : isLow ? (
+                        <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 700, background: "#fef3c7", color: "#b45309" }}>
+                          Low Stock
+                        </span>
+                      ) : (
+                        <span style={{ padding: "3px 8px", borderRadius: "12px", fontSize: "10px", fontWeight: 600, background: "#e8f8f0", color: "#15803d" }}>
+                          In Stock
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Metrics: Stock, Retail Price, Cost */}
+                  <div className="mobile-part-metrics" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Stock Level</span>
+                      <b style={{ fontSize: "13.5px", color: isOut ? "#dc2626" : isLow ? "#d97706" : "#0f172a" }}>
+                        {item.current_stock} <span style={{ fontSize: "10px", fontWeight: 400, color: "#94a3b8" }}>(Min {item.minimum_stock})</span>
+                      </b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Retail / Sell</span>
+                      <b style={{ fontSize: "13px", color: "#059669" }}>
+                        ₹{Number(item.selling_price).toFixed(2)}
+                      </b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Cost Price</span>
+                      <b style={{ fontSize: "13px", color: "#334155" }}>
+                        ₹{Number(item.purchase_price).toFixed(2)}
+                      </b>
+                    </div>
+                  </div>
+
+                  {/* Barcode & Notes */}
+                  {(item.barcode || item.notes) && (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "#64748b" }}>
+                      {item.barcode && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                          <Barcode size={12} className="muted" />
+                          <code style={{ fontSize: "11px" }}>{item.barcode}</code>
+                        </div>
+                      )}
+                      {item.notes && <span style={{ fontStyle: "italic", color: "#8292a8" }}>{item.notes}</span>}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", paddingTop: "8px", borderTop: "1px dashed #e2e8f0" }}>
+                    <button
+                      onClick={() => {
+                        setAdjustingItem(item);
+                        setAdjustQty(1);
+                        setAdjustType("add");
+                        setAdjustReason("Restocked inventory");
+                      }}
+                      style={{
+                        background: "#f1f5f9",
+                        border: 0,
+                        borderRadius: "6px",
+                        padding: "6px 10px",
+                        fontSize: "11.5px",
+                        color: "#334155",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        flex: 1,
+                        justifyContent: "center",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <ArrowUpDown size={13} /> Adjust Stock
+                    </button>
+                    <button
+                      onClick={() => openEditModal(item)}
+                      style={{
+                        background: "#e0f2fe",
+                        border: 0,
+                        borderRadius: "6px",
+                        padding: "6px 12px",
+                        fontSize: "11.5px",
+                        color: "#0369a1",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Edit2 size={13} /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.name)}
+                      style={{
+                        background: "#fee2e2",
+                        border: 0,
+                        borderRadius: "6px",
+                        padding: "6px 10px",
+                        fontSize: "11.5px",
+                        color: "#b91c1c",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

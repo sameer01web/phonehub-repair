@@ -1961,6 +1961,69 @@ select option {
   border-top: 1px dashed #e2e8f0;
 }
 
+/* ========================================================================= */
+/* UNIVERSAL RESPONSIVE CARDS FOR ALL WORKSHOP MODULES                       */
+/* ========================================================================= */
+.desktop-accessories-table,
+.desktop-orders-table,
+.desktop-suppliers-table,
+.desktop-grns-table,
+.desktop-grntest-table,
+.desktop-staff-table {
+  display: block;
+}
+
+.mobile-accessories-cards,
+.mobile-orders-cards,
+.mobile-suppliers-cards,
+.mobile-grns-cards,
+.mobile-grntest-cards,
+.mobile-staff-cards,
+.mobile-inspections-cards,
+.mobile-qc-cards,
+.mobile-reports-tech-cards,
+.mobile-reports-jobs-cards,
+.mobile-shipments-cards {
+  display: none;
+}
+
+.mobile-accessory-card,
+.mobile-po-card,
+.mobile-supplier-card,
+.mobile-grn-card,
+.mobile-grntest-card,
+.mobile-staff-card,
+.mobile-inspection-card,
+.mobile-qc-card,
+.mobile-reports-tech-card,
+.mobile-reports-job-card,
+.mobile-shipment-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.18s ease;
+}
+
+.mobile-accessory-card:hover,
+.mobile-po-card:hover,
+.mobile-supplier-card:hover,
+.mobile-grn-card:hover,
+.mobile-grntest-card:hover,
+.mobile-staff-card:hover,
+.mobile-inspection-card:hover,
+.mobile-qc-card:hover,
+.mobile-reports-tech-card:hover,
+.mobile-reports-job-card:hover,
+.mobile-shipment-card:hover {
+  border-color: #0176d3;
+  box-shadow: 0 4px 12px rgba(1, 118, 211, 0.08);
+}
+
 @media (max-width: 768px) {
   .mobile-tab-label {
     display: inline !important;
@@ -1998,7 +2061,17 @@ select option {
   .desktop-jobs-table,
   .desktop-parts-table,
   .desktop-batches-table,
-  .desktop-ledger-table {
+  .desktop-ledger-table,
+  .desktop-accessories-table,
+  .desktop-orders-table,
+  .desktop-suppliers-table,
+  .desktop-grns-table,
+  .desktop-grntest-table,
+  .desktop-staff-table,
+  .desktop-inspections-table,
+  .desktop-qc-table,
+  .desktop-reports-table,
+  .desktop-shipments-table {
     display: none !important;
   }
 
@@ -2006,7 +2079,18 @@ select option {
   .mobile-jobs-cards,
   .mobile-parts-cards,
   .mobile-batches-cards,
-  .mobile-ledger-cards {
+  .mobile-ledger-cards,
+  .mobile-accessories-cards,
+  .mobile-orders-cards,
+  .mobile-suppliers-cards,
+  .mobile-grns-cards,
+  .mobile-grntest-cards,
+  .mobile-staff-cards,
+  .mobile-inspections-cards,
+  .mobile-qc-cards,
+  .mobile-reports-tech-cards,
+  .mobile-reports-jobs-cards,
+  .mobile-shipments-cards {
     display: flex !important;
     flex-direction: column;
     gap: 12px;

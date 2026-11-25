@@ -15,6 +15,7 @@ import {
 import { getDevices, recordInspection, getInspections, normalizeDeviceStatus, formatDeviceStatus } from "../lib/repairs";
 import type { Device, Inspection } from "../lib/types";
 import { ChecklistCard, ChecklistToolbar } from "../components/ChecklistCard";
+import CustomSelect from "../components/CustomSelect";
 
 export default function InspectionPage() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -188,7 +189,7 @@ export default function InspectionPage() {
           <span className="count">{inspections.length} recorded diagnostic inspections</span>
         </div>
 
-        <div className="table-wrap">
+        <div className="table-wrap desktop-inspections-table">
           <table>
             <thead>
               <tr>
@@ -266,6 +267,75 @@ export default function InspectionPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Touch Cards */}
+        <div className="mobile-inspections-cards">
+          {inspections.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+              No inspections completed yet. Tap "New Phone Inspection" to begin.
+            </div>
+          ) : (
+            inspections.map((i) => {
+              const dev = allDevices.find((d) => d.id === i.device_id);
+              return (
+                <div key={i.id} className="mobile-inspection-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <b style={{ fontSize: "14px", color: "#152b49" }}>
+                        {dev ? `${dev.brand} ${dev.model}` : `Device ${i.device_id.slice(0, 8)}`}
+                      </b>
+                      {dev?.imei1 && (
+                        <div style={{ fontSize: "11px", color: "#64748b" }}>
+                          IMEI: {dev.imei1}
+                        </div>
+                      )}
+                    </div>
+                    <span className="tag" style={{ fontWeight: 700 }}>
+                      {i.grade || "Good"}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: "11px", color: "#64748b" }}>
+                    {new Date(i.created_at).toLocaleString("en-IN")}
+                  </div>
+
+                  <div>
+                    {i.defects && i.defects.length > 0 ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                        {i.defects.map((d) => (
+                          <span key={d} className="tag" style={{ background: "#fff0ef", color: "#b42318", fontSize: "10.5px" }}>
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", fontSize: "11px" }}>
+                        Passed All (No Defects)
+                      </span>
+                    )}
+                  </div>
+
+                  {i.notes && (
+                    <div style={{ fontSize: "11.5px", color: "#475569", background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                      <b>Notes:</b> {i.notes}
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ padding: "6px 12px", fontSize: "11.5px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                      onClick={() => setSelectedInspectionForView(i)}
+                    >
+                      <Eye size={13} /> View Checklist
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* MODAL: RUN INSPECTION */}
@@ -281,31 +351,41 @@ export default function InspectionPage() {
             </div>
 
             <div className="form-grid">
-              <label style={{ gridColumn: "1 / -1" }}>
+              <label style={{ gridColumn: "1 / -1", display: "grid", gap: "7px" }}>
                 Target Handset to Inspect *
-                <select
-                  required
+                <CustomSelect
                   value={selectedDeviceId}
-                  onChange={(e) => setSelectedDeviceId(e.target.value)}
-                >
-                  <option value="">-- Choose Handset --</option>
-                  {eligibleDevices.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.brand} {d.model} (IMEI: {d.imei1 || "N/A"}) — Status: {formatDeviceStatus(d.status)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedDeviceId(val)}
+                  placeholder="-- Choose Handset --"
+                  options={[
+                    { value: "", label: "-- Choose Handset --" },
+                    ...eligibleDevices.map((d) => ({
+                      value: d.id,
+                      label: `${d.brand} ${d.model} (IMEI: ${d.imei1 || "N/A"}) — Status: ${formatDeviceStatus(d.status)}`,
+                    })),
+                  ]}
+                  style={{ width: "100%" }}
+                  minWidth="100%"
+                  height="38px"
+                />
               </label>
 
-              <label>
+              <label style={{ gridColumn: "1 / -1", display: "grid", gap: "7px" }}>
                 Overall Cosmetic / Grade
-                <select value={grade} onChange={(e) => setGrade(e.target.value)}>
-                  <option>Grade A (Excellent)</option>
-                  <option>Grade B (Good)</option>
-                  <option>Grade C (Fair / Scratched)</option>
-                  <option>Damaged / Broken Screen</option>
-                  <option>Scrap / Non-Functional</option>
-                </select>
+                <CustomSelect
+                  value={grade}
+                  onChange={(val) => setGrade(val)}
+                  options={[
+                    { value: "Grade A (Excellent)", label: "Grade A (Excellent)" },
+                    { value: "Grade B (Good)", label: "Grade B (Good)" },
+                    { value: "Grade C (Fair / Scratched)", label: "Grade C (Fair / Scratched)" },
+                    { value: "Damaged / Broken Screen", label: "Damaged / Broken Screen" },
+                    { value: "Scrap / Non-Functional", label: "Scrap / Non-Functional" },
+                  ]}
+                  style={{ width: "100%" }}
+                  minWidth="100%"
+                  height="38px"
+                />
               </label>
             </div>
 

@@ -147,7 +147,7 @@ export default function ShipmentsPage() {
           <span className="count">{shipments.length} shipment lots registered</span>
         </div>
 
-        <div className="table-wrap">
+        <div className="table-wrap desktop-shipments-table">
           <table>
             <thead>
               <tr>
@@ -217,6 +217,70 @@ export default function ShipmentsPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Touch Cards */}
+        <div className="mobile-shipments-cards">
+          {shipments.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+              No shipments registered yet. Tap "Register Shipment Lot" to start.
+            </div>
+          ) : (
+            shipments.map((s) => (
+              <div key={s.id} className="mobile-shipment-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div>
+                    <b style={{ color: "#0176d3", fontSize: "14px" }}>{s.shipment_code}</b>
+                    <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                      Supplier: <b>{s.supplier_name || "Unspecified"}</b>
+                    </div>
+                  </div>
+                  <span className="tag" style={{ background: "#f1f7fd", color: "#1680d0", fontWeight: 700 }}>
+                    <Smartphone size={12} style={{ display: "inline", marginRight: 3 }} />
+                    {s.device_count || 0} phones
+                  </span>
+                </div>
+
+                <div style={{ fontSize: "11px", color: "#64748b" }}>
+                  Received: {new Date(s.received_date).toLocaleDateString("en-IN")}
+                </div>
+
+                {s.notes && (
+                  <div style={{ fontSize: "11.5px", color: "#475569", background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                    <b>Notes:</b> {s.notes}
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+                  <button
+                    className="secondary-btn"
+                    style={{ padding: "6px 12px", fontSize: "11.5px" }}
+                    onClick={() => viewShipmentDetails(s)}
+                  >
+                    View Handsets
+                  </button>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "6px 10px", fontSize: "11.5px" }}
+                      onClick={() => startEditShipment(s)}
+                      title="Edit lot details"
+                    >
+                      <Edit2 size={13} />
+                    </button>
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "6px 10px", fontSize: "11.5px", color: "#b42318", borderColor: "#fecaca" }}
+                      onClick={() => handleDelete(s.id, s.shipment_code || s.tracking_number || s.id.slice(0, 8))}
+                      title="Delete shipment lot"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

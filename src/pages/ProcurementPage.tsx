@@ -262,19 +262,25 @@ export default function ProcurementPage() {
           className={activeTab === "orders" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("orders")}
         >
-          <FileText size={15} /> Purchase Orders ({orders.length})
+          <FileText size={15} />
+          <span className="desktop-tab-label">Purchase Orders ({orders.length})</span>
+          <span className="mobile-tab-label">POs ({orders.length})</span>
         </button>
         <button
           className={activeTab === "suppliers" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("suppliers")}
         >
-          <Building2 size={15} /> Suppliers ({suppliers.length})
+          <Building2 size={15} />
+          <span className="desktop-tab-label">Suppliers ({suppliers.length})</span>
+          <span className="mobile-tab-label">Suppliers ({suppliers.length})</span>
         </button>
         <button
           className={activeTab === "grn" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("grn")}
         >
-          <PackageCheck size={15} /> Goods Receipts ({grns.length})
+          <PackageCheck size={15} />
+          <span className="desktop-tab-label">Goods Receipts ({grns.length})</span>
+          <span className="mobile-tab-label">Receipts ({grns.length})</span>
         </button>
       </div>
 
@@ -288,7 +294,8 @@ export default function ProcurementPage() {
             <span className="count">{orders.length} purchase orders</span>
           </div>
 
-          <div className="table-wrap">
+          {/* Desktop Table */}
+          <div className="table-wrap desktop-orders-table">
             <table>
               <thead>
                 <tr>
@@ -365,6 +372,89 @@ export default function ProcurementPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile View: Touch-Friendly PO Cards */}
+          <div className="mobile-orders-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                Loading purchase orders…
+              </div>
+            ) : orders.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+                No purchase orders found. Click "Create Purchase Order" to begin.
+              </div>
+            ) : (
+              orders.map((po) => (
+                <div key={po.id} className="mobile-po-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <b style={{ color: "#0176d3", fontSize: "14px" }}>
+                        <code>{po.po_number}</code>
+                      </b>
+                      <div style={{ fontSize: "12px", color: "#1e293b", fontWeight: 600, marginTop: "2px" }}>
+                        {po.supplier_name}
+                      </div>
+                    </div>
+                    <span
+                      className="tag"
+                      style={{
+                        background: po.status === "received" ? "#e8f8f0" : "#fff8e7",
+                        color: po.status === "received" ? "#15945b" : "#805b16",
+                        textTransform: "capitalize",
+                        fontWeight: 700,
+                        fontSize: "11px",
+                      }}
+                    >
+                      {po.status}
+                    </span>
+                  </div>
+
+                  <div className="mobile-part-metrics" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Total Amount</span>
+                      <b style={{ fontSize: "14px", color: "#0176d3" }}>₹{po.total_amount.toLocaleString("en-IN")}</b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Line Items</span>
+                      <b style={{ fontSize: "13px", color: "#334155" }}>{po.items?.length || 0} items</b>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "11px", color: "#8292a8" }}>
+                    Date: {new Date(po.created_at).toLocaleDateString("en-IN")}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", paddingTop: "8px", borderTop: "1px dashed #e2e8f0" }}>
+                    <select
+                      value={po.status}
+                      onChange={(e) => handlePoStatusChange(po.id, e.target.value)}
+                      style={{
+                        height: "32px",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "6px",
+                        padding: "0 8px",
+                        fontSize: "11.5px",
+                        background: "#fff",
+                        flex: 1,
+                      }}
+                    >
+                      <option value="ordered">Ordered</option>
+                      <option value="partially_received">Partially Received</option>
+                      <option value="received">Received</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "6px 12px", fontSize: "11.5px" }}
+                      onClick={() => setSelectedPo(po)}
+                    >
+                      View Lines
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -378,7 +468,8 @@ export default function ProcurementPage() {
             <span className="count">{suppliers.length} suppliers</span>
           </div>
 
-          <div className="table-wrap">
+          {/* Desktop Table */}
+          <div className="table-wrap desktop-suppliers-table">
             <table>
               <thead>
                 <tr>
@@ -433,6 +524,60 @@ export default function ProcurementPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile View: Touch-Friendly Supplier Cards */}
+          <div className="mobile-suppliers-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                Loading suppliers…
+              </div>
+            ) : suppliers.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+                No suppliers registered. Click "Add Supplier" to add one.
+              </div>
+            ) : (
+              suppliers.map((s) => (
+                <div key={s.id} className="mobile-supplier-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "14px", color: "#0f172a" }}>
+                        {s.supplier_name}
+                      </div>
+                      {s.contact_person && (
+                        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                          Contact: {s.contact_person}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "4px 8px", fontSize: "11px" }}
+                        onClick={() => startEditSupplier(s)}
+                        title="Edit Supplier"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "4px 8px", fontSize: "11px", color: "#b42318", borderColor: "#fecaca" }}
+                        onClick={() => handleDeleteSupplier(s.id, s.supplier_name)}
+                        title="Delete Supplier"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "11.5px", color: "#475569", background: "#f8fafc", padding: "8px 10px", borderRadius: "6px" }}>
+                    {s.phone && <div>📞 <code>{s.phone}</code></div>}
+                    {s.email && <div>✉️ {s.email}</div>}
+                    {s.address && <div>📍 {s.address}</div>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -446,7 +591,8 @@ export default function ProcurementPage() {
             <span className="count">{grns.length} goods receipt notes</span>
           </div>
 
-          <div className="table-wrap">
+          {/* Desktop Table */}
+          <div className="table-wrap desktop-grns-table">
             <table>
               <thead>
                 <tr>
@@ -510,6 +656,66 @@ export default function ProcurementPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile View: Touch-Friendly GRN Cards */}
+          <div className="mobile-grns-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
+                Loading goods receipts…
+              </div>
+            ) : grns.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
+                No Goods Receipts found.
+              </div>
+            ) : (
+              grns.map((g) => {
+                const isTest = g.is_test_receipt || g.grn_number?.toUpperCase() === "TEST-GRN-001";
+                return (
+                  <div key={g.id} className="mobile-grn-card">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <b style={{ color: "#0176d3", fontSize: "13.5px" }}>
+                          <code>{g.grn_number || g.id.slice(0, 8)}</code>
+                        </b>
+                        {isTest && (
+                          <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", marginLeft: 6, fontSize: "9px" }}>
+                            TEST GRN
+                          </span>
+                        )}
+                        <div style={{ fontSize: "12px", color: "#1e293b", fontWeight: 600, marginTop: "2px" }}>
+                          {g.supplier_name || "Supplier"}
+                        </div>
+                      </div>
+                      {g.is_processed ? (
+                        <span className="tag" style={{ background: "#fef3c7", color: "#92400e", fontWeight: 700, fontSize: "10px" }}>
+                          In FIFO
+                        </span>
+                      ) : (
+                        <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", fontWeight: 700, fontSize: "10px" }}>
+                          Pending
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "#64748b" }}>
+                      <span>PO Ref: <b>{g.po_number || "—"}</b></span>
+                      <span>{g.received_date ? new Date(g.received_date).toLocaleDateString("en-IN") : "—"}</span>
+                    </div>
+
+                    <div style={{ paddingTop: "6px", borderTop: "1px dashed #e2e8f0" }}>
+                      <Link
+                        to="/goods-receipts"
+                        className="secondary-btn"
+                        style={{ padding: "6px 12px", fontSize: "11px", width: "100%", justifyContent: "center", display: "flex", textDecoration: "none" }}
+                      >
+                        <Layers size={13} style={{ marginRight: 4 }} /> Inward to FIFO
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
