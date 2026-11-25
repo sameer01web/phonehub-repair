@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Check,
   Tag,
+  Copy,
 } from "lucide-react";
 import {
   getJobCards,
@@ -481,73 +482,93 @@ export default function JobCardsPage() {
       </div>
 
       <div className="panel">
-        <div className="panel-toolbar" style={{ flexWrap: "wrap", gap: "10px" }}>
-          <div className="searchbox" style={{ minWidth: "260px" }}>
-            <Search size={16} />
-            <input
-              placeholder="Search by Job #, brand, model, IMEI, or issue..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+        <div className="jobs-toolbar-container">
+          <div className="jobs-search-and-actions">
+            <div className="searchbox jobs-searchbox" style={{ flex: 1 }}>
+              <Search size={16} />
+              <input
+                placeholder="Search by Job #, brand, model, IMEI, or issue..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Filters Grid */}
+          <div className="jobs-filters-grid">
+            {/* Status Filter */}
+            <CustomSelect
+              label="Status"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: "all", label: "All Statuses" },
+                { value: "received", label: "Received / Intake" },
+                { value: "assigned", label: "Assigned to Tech" },
+                { value: "in_progress", label: "In Repair" },
+                { value: "waiting_for_parts", label: "Waiting for Parts" },
+                { value: "qc_pending", label: "QC Testing" },
+                { value: "completed", label: "Completed / Delivered" },
+                { value: "cancelled", label: "Cancelled" },
+              ]}
+              minWidth="160px"
+            />
+
+            {/* Priority Filter */}
+            <CustomSelect
+              label="Priority"
+              value={priorityFilter}
+              onChange={setPriorityFilter}
+              options={[
+                { value: "all", label: "All Priorities" },
+                { value: "urgent", label: "Urgent" },
+                { value: "high", label: "High" },
+                { value: "normal", label: "Normal" },
+                { value: "low", label: "Low" },
+              ]}
+              minWidth="140px"
+            />
+
+            {/* Technician Filter */}
+            <CustomSelect
+              label="Technician"
+              value={techFilter}
+              onChange={setTechFilter}
+              options={[
+                { value: "all", label: "All Technicians" },
+                ...staffList
+                  .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
+                  .map((tech) => ({
+                    value: tech.id,
+                    label: `${tech.full_name || "Technician"} (${tech.role.replace(/_/g, " ")})`,
+                  })),
+              ]}
+              minWidth="170px"
             />
           </div>
 
-          {/* Status Filter */}
-          <CustomSelect
-            label="Status"
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { value: "all", label: "All Statuses" },
-              { value: "received", label: "Received / Intake" },
-              { value: "assigned", label: "Assigned to Tech" },
-              { value: "in_progress", label: "In Repair" },
-              { value: "waiting_for_parts", label: "Waiting for Parts" },
-              { value: "qc_pending", label: "QC Testing" },
-              { value: "completed", label: "Completed / Delivered" },
-              { value: "cancelled", label: "Cancelled" },
-            ]}
-            minWidth="160px"
-          />
-
-          {/* Priority Filter */}
-          <CustomSelect
-            label="Priority"
-            value={priorityFilter}
-            onChange={setPriorityFilter}
-            options={[
-              { value: "all", label: "All Priorities" },
-              { value: "urgent", label: "Urgent" },
-              { value: "high", label: "High" },
-              { value: "normal", label: "Normal" },
-              { value: "low", label: "Low" },
-            ]}
-            minWidth="140px"
-          />
-
-          {/* Technician Filter */}
-          <CustomSelect
-            label="Technician"
-            value={techFilter}
-            onChange={setTechFilter}
-            options={[
-              { value: "all", label: "All Technicians" },
-              ...staffList
-                .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
-                .map((tech) => ({
-                  value: tech.id,
-                  label: `${tech.full_name || "Technician"} (${tech.role.replace(/_/g, " ")})`,
-                })),
-            ]}
-            minWidth="170px"
-          />
-
-          <button className="icon-btn" onClick={loadData} title="Refresh">
-            <RefreshCw size={16} />
-          </button>
-          <span className="count">{filteredJobs.length} job cards</span>
+          <div className="jobs-meta-bar">
+            <button className="icon-btn" onClick={loadData} title="Refresh">
+              <RefreshCw size={16} />
+            </button>
+            <span
+              className="count"
+              style={{
+                background: "#f1f5f9",
+                color: "#475569",
+                fontSize: "12px",
+                fontWeight: 600,
+                padding: "4px 10px",
+                borderRadius: "20px",
+              }}
+            >
+              📋 {filteredJobs.length} job card{filteredJobs.length === 1 ? "" : "s"}
+            </span>
+          </div>
         </div>
 
-        <div className="table-wrap">
+        {/* 1. Desktop View: Comprehensive 8-column Table */}
+        <div className="table-wrap desktop-jobs-table">
           <table>
             <thead>
               <tr>
@@ -776,6 +797,243 @@ export default function JobCardsPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 2. Mobile View: Touch-Friendly Responsive Job Cards */}
+        <div className="mobile-jobs-cards">
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px" }}>
+              Loading repair job cards…
+            </div>
+          ) : filteredJobs.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px", background: "#f8fafc", borderRadius: "8px" }}>
+              No repair tickets match the active filters. Click "Open Repair Job Card" to start a repair.
+            </div>
+          ) : (
+            filteredJobs.map((j) => {
+              const isCompleted = j.status === "completed";
+              const isInProgress = j.status === "in_progress";
+              const isQc = j.status === "qc_pending";
+              const isAssigned = j.status === "assigned";
+              const isReceived = j.status === "received";
+
+              return (
+                <div key={j.id} className="mobile-job-card">
+                  {/* Header: Job Number & Priority / Status Badges */}
+                  <div className="mobile-job-header">
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <b style={{ color: "#0176d3", fontSize: "14px" }}>
+                          <code>#{j.job_number || j.id.slice(0, 6)}</code>
+                        </b>
+                        <span style={{ fontSize: "10.5px", color: "#8291a5" }}>
+                          {new Date(j.created_at).toLocaleDateString("en-IN")}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                      <span
+                        className="tag"
+                        style={{
+                          background:
+                            j.priority?.toLowerCase() === "urgent"
+                              ? "#fef2f2"
+                              : j.priority?.toLowerCase() === "high"
+                              ? "#fff5eb"
+                              : "#edf5fc",
+                          color:
+                            j.priority?.toLowerCase() === "urgent"
+                              ? "#b42318"
+                              : j.priority?.toLowerCase() === "high"
+                              ? "#e68a2e"
+                              : "#0176d3",
+                          fontWeight: 700,
+                          fontSize: "10.5px",
+                        }}
+                      >
+                        {j.priority}
+                      </span>
+                      <span
+                        className="tag"
+                        style={{
+                          textTransform: "capitalize",
+                          fontWeight: 700,
+                          fontSize: "10.5px",
+                          background: isCompleted ? "#e8f8f0" : isInProgress ? "#fff2e5" : isQc ? "#f1edff" : "#edf5fc",
+                          color: isCompleted ? "#15945b" : isInProgress ? "#e68a2e" : isQc ? "#7955c7" : "#0176d3",
+                        }}
+                      >
+                        {j.status.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Device Info */}
+                  <div className="mobile-job-device">
+                    <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
+                      {j.device?.brand} {j.device?.model}
+                    </div>
+                    {j.device?.imei1 && (
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#f1f5f9", borderRadius: "5px", padding: "1px 7px", fontSize: "11px" }}>
+                        <span style={{ color: "#64748b", fontSize: "10px" }}>IMEI:</span>
+                        <code style={{ fontWeight: 600, color: "#1e293b" }}>{j.device?.imei1}</code>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(j.device?.imei1 || "");
+                            setSuccess(`Copied IMEI ${j.device?.imei1}`);
+                            setTimeout(() => setSuccess(null), 2500);
+                          }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#0176d3", padding: "1px 2px" }}
+                          title="Copy IMEI"
+                        >
+                          <Copy size={11} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Complaint & Diagnosis */}
+                  {(j.complaint || j.title || j.diagnosis) && (
+                    <div className="mobile-job-issue">
+                      <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "12px" }}>
+                        {j.complaint || j.title}
+                      </div>
+                      {j.diagnosis && (
+                        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                          Diag: {j.diagnosis}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Technician & Quick Status Change */}
+                  <div className="mobile-job-tech-row">
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>Tech:</span>
+                      {(j.assignments || []).length === 0 ? (
+                        <span style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>
+                          Unassigned
+                        </span>
+                      ) : (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {j.assignments?.map((a) => (
+                            <span key={a.id} className="tag" style={{ background: "#f1edff", color: "#7955c7", fontSize: "10.5px" }}>
+                              {a.task_name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
+                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>Status:</span>
+                      <select
+                        value={j.status}
+                        onChange={(e) => handleStatusChange(j.id, e.target.value)}
+                        style={{
+                          height: "28px",
+                          border: "1.5px solid #cbd5e1",
+                          borderRadius: "6px",
+                          padding: "0 6px",
+                          fontSize: "11px",
+                          background: "#fff",
+                          fontWeight: 500,
+                          color: "#1e293b",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="received">Received</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="in_progress">In Repair</option>
+                        <option value="waiting_for_parts">Waiting Parts</option>
+                        <option value="qc_pending">QC Testing</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons Row */}
+                  <div className="mobile-job-actions">
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "5px 9px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                      onClick={() => {
+                        setSelectedJob(j);
+                        setAssignTechId(staffList.find((s) => s.role === "technician")?.id || user?.id || "");
+                        setShowAssignTech(true);
+                      }}
+                      title="Assign technician & task"
+                    >
+                      <UserCheck size={13} /> Assign
+                    </button>
+
+                    {(isReceived || isAssigned) && (
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 9px", fontSize: "11px", color: "#e68a2e", flex: 1, justifyContent: "center" }}
+                        onClick={() => handleStatusChange(j.id, "in_progress")}
+                        title="Begin bench repair"
+                      >
+                        <Wrench size={13} /> Start
+                      </button>
+                    )}
+
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "5px 9px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                      onClick={() => {
+                        setSelectedJob(j);
+                        const availablePart = parts.find((p) => (p.quantity || p.current_stock || 0) > 0) || parts[0];
+                        setPartId(availablePart?.id || "");
+                        setPartQty("1");
+                        setShowIssuePart(true);
+                      }}
+                      title="Issue spare part"
+                    >
+                      <Wrench size={13} /> Part
+                    </button>
+
+                    {isInProgress && (
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 9px", fontSize: "11px", color: "#7955c7", flex: 1, justifyContent: "center" }}
+                        onClick={() => handleStatusChange(j.id, "qc_pending")}
+                        title="Submit for QC testing"
+                      >
+                        <ShieldCheck size={13} /> To QC
+                      </button>
+                    )}
+
+                    {!isCompleted ? (
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 9px", fontSize: "11px", color: "#15945b", flex: 1, justifyContent: "center" }}
+                        onClick={() => handleDeliverPhone(j)}
+                        title="Mark repair completed and phone delivered"
+                      >
+                        <Truck size={13} /> Deliver
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: "11px", color: "#15945b", fontWeight: 700, padding: "5px 6px" }}>
+                        ✓ Delivered
+                      </span>
+                    )}
+
+                    <button
+                      className="secondary-btn"
+                      style={{ padding: "5px 9px", fontSize: "11px", justifyContent: "center" }}
+                      onClick={() => handleOpenDetails(j)}
+                      title="View full ticket details & history"
+                    >
+                      <Eye size={13} /> Details
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
