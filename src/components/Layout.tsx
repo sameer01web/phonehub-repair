@@ -138,29 +138,7 @@ export default function Layout() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const { user, profile, role, isAuthorizedForFifo, signOut, signIn, switchRole, error } = useAuth();
-
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [modalEmail, setModalEmail] = useState("");
-  const [modalPassword, setModalPassword] = useState("");
-  const [modalLoading, setModalLoading] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
-
-  async function handleModalLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setModalError(null);
-    setModalLoading(true);
-    try {
-      await signIn(modalEmail.trim(), modalPassword);
-      setShowLoginModal(false);
-      setModalEmail("");
-      setModalPassword("");
-    } catch (err: any) {
-      setModalError(err?.message || "Invalid email or password.");
-    } finally {
-      setModalLoading(false);
-    }
-  }
+  const { user, profile, role, isAuthorizedForFifo, signOut, switchRole, error } = useAuth();
 
   // Strict Security Rule: Never default a missing or invalid role to 'owner'
   const currentRole = role || null;
@@ -327,9 +305,8 @@ export default function Layout() {
                 {user.email}
               </span>
             ) : (
-              <button
-                type="button"
-                onClick={() => setShowLoginModal(true)}
+              <NavLink
+                to="/login"
                 style={{
                   background: "transparent",
                   border: 0,
@@ -342,11 +319,12 @@ export default function Layout() {
                   gap: "5px",
                   padding: "5px 10px",
                   borderRadius: "6px",
+                  textDecoration: "none",
                 }}
               >
                 <LogIn size={14} />
                 Sign In
-              </button>
+              </NavLink>
             )}
 
             <div className="avatar small">{userInitial}</div>
@@ -367,46 +345,6 @@ export default function Layout() {
               }}
             >
               <b>Protected Access Denied:</b> {error || "Your user profile is missing, inactive, or cannot be verified in the database. Protected workshop access is restricted."}
-            </div>
-          )}
-
-          {!user && (
-            <div
-              style={{
-                padding: "14px 18px",
-                marginBottom: "16px",
-                background: "#f0f7ff",
-                border: "1px solid #bae6fd",
-                borderRadius: "8px",
-                color: "#0369a1",
-                fontSize: "13px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: "10px",
-              }}
-            >
-              <div>
-                <b>Workshop Authentication Required:</b> Please sign in with your workshop staff account (e.g. <code>phone@gmail.com</code>) to unlock full operations.
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  type="button"
-                  className="primary-btn"
-                  style={{ padding: "6px 14px", fontSize: "11px" }}
-                  onClick={() => setShowLoginModal(true)}
-                >
-                  <LogIn size={13} /> Sign In Now
-                </button>
-                <NavLink
-                  to="/login"
-                  className="secondary-btn"
-                  style={{ padding: "6px 12px", fontSize: "11px", textDecoration: "none" }}
-                >
-                  Login Page
-                </NavLink>
-              </div>
             </div>
           )}
 
@@ -463,95 +401,6 @@ export default function Layout() {
             <span>Menu</span>
           </button>
         </nav>
-
-        {/* Universal Sign In Modal */}
-        {showLoginModal && (
-          <div className="modal-backdrop">
-            <form className="modal" onSubmit={handleModalLogin} style={{ maxWidth: "420px" }}>
-              <div className="modal-head">
-                <div>
-                  <span className="tag" style={{ background: "#edf5fc", color: "#0176d3", fontWeight: 700 }}>
-                    Staff Authentication
-                  </span>
-                  <h2 style={{ marginTop: "6px" }}>Sign In to Phone Hub</h2>
-                  <p>Enter your registered workshop staff credentials</p>
-                </div>
-                <button
-                  type="button"
-                  className="icon-btn"
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    setModalError(null);
-                  }}
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {modalError && (
-                <div
-                  style={{
-                    background: "#fef2f2",
-                    border: "1px solid #fecaca",
-                    borderRadius: "6px",
-                    padding: "10px 12px",
-                    marginBottom: "14px",
-                    color: "#991b1b",
-                    fontSize: "12px",
-                  }}
-                >
-                  {modalError}
-                </div>
-              )}
-
-              <div style={{ display: "grid", gap: "12px" }}>
-                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                  Staff Email Address *
-                  <input
-                    type="email"
-                    required
-                    placeholder="e.g. phone@gmail.com"
-                    value={modalEmail}
-                    onChange={(e) => setModalEmail(e.target.value)}
-                    style={{ height: "38px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "0 10px", fontSize: "13px" }}
-                  />
-                </label>
-
-                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                  Account Password *
-                  <input
-                    type="password"
-                    required
-                    placeholder="Enter your account password"
-                    value={modalPassword}
-                    onChange={(e) => setModalPassword(e.target.value)}
-                    style={{ height: "38px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "0 10px", fontSize: "13px" }}
-                  />
-                </label>
-              </div>
-
-              <div className="modal-actions" style={{ marginTop: "18px" }}>
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    setModalError(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="primary-btn"
-                  disabled={modalLoading}
-                >
-                  {modalLoading ? "Verifying..." : "Sign In to Workshop"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
       </main>
     </div>
   );

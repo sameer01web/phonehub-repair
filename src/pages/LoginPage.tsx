@@ -25,13 +25,30 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { user, profile, role, signIn, signOut } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("phone@gmail.com");
+  const [password, setPassword] = useState("123456");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Quick Demo Account Auto-Fill
+  // Quick Demo Account Auto-Fill & Direct Sign-In
+  async function handleQuickSignIn(demoEmail: string, demoPass: string) {
+    setEmail(demoEmail);
+    setPassword(demoPass);
+    setErrorMsg(null);
+    setLoading(true);
+
+    try {
+      await signIn(demoEmail.trim(), demoPass);
+      navigate("/");
+    } catch (err: any) {
+      console.error("Quick sign-in error:", err);
+      setErrorMsg(err?.message || "Sign in failed. Please verify credentials.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function fillDemoAccount(demoEmail: string, demoPass: string) {
     setEmail(demoEmail);
     setPassword(demoPass);
@@ -221,10 +238,12 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="demo-chip owner"
-                onClick={() => fillDemoAccount("phone@gmail.com", "123456")}
-                title="Auto-fill Workshop Owner credentials"
+                onClick={() => handleQuickSignIn("phone@gmail.com", "123456")}
+                title="Instant 1-Click Sign In as Workshop Owner"
+                disabled={loading}
               >
-                <b>Owner:</b> phone@gmail.com
+                <Sparkles size={13} />
+                <b>1-Click Demo Login:</b> phone@gmail.com (Owner)
               </button>
             </div>
           </div>

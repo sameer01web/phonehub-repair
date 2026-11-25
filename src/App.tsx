@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import DevicesPage from "./pages/DevicesPage";
@@ -14,8 +14,30 @@ import ReportsPage from "./pages/ReportsPage";
 import StaffPage from "./pages/StaffPage";
 import GoodsReceiptFifoTest from "./pages/GoodsReceiptFifoTest";
 import LoginPage from "./pages/LoginPage";
-import Placeholder from "./pages/Placeholder";
 import { isSupabaseConfigured } from "./lib/supabase";
+import { useAuth } from "./lib/auth";
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="login-root" style={{ display: "grid", placeItems: "center", minHeight: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <div className="spinner-sm" style={{ width: 36, height: 36, borderWidth: 3, borderColor: "rgba(1, 118, 211, 0.2)", borderTopColor: "#0176d3", margin: "0 auto 14px" }} />
+          <div style={{ color: "#0f172a", fontSize: "14px", fontWeight: 700 }}>Phone Hub Mobile Repair Workshop</div>
+          <div style={{ color: "#64748b", fontSize: "12px", marginTop: 4 }}>Checking secure workshop session...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
@@ -25,8 +47,14 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signin" element={<LoginPage />} />
 
-        {/* Protected Dashboard Layout Routes */}
-        <Route element={<Layout />}>
+        {/* Protected Dashboard Layout Routes - Redirects to /login if unauthenticated */}
+        <Route
+          element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }
+        >
           {/* Main Operational Dashboard */}
           <Route index element={<Dashboard />} />
 
@@ -68,6 +96,9 @@ export default function App() {
           {/* General Settings */}
           <Route path="settings" element={<StaffPage />} />
         </Route>
+
+        {/* Fallback unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {!isSupabaseConfigured && (
