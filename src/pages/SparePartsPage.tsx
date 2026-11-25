@@ -233,16 +233,18 @@ export default function SparePartsPage() {
           <h1>Spare Parts & FIFO Stock</h1>
           <p>Catalogue management, model compatibility, minimum alerts, FIFO layers, and audit ledger.</p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button className="secondary-btn" onClick={() => setShowAdjust(true)}>
-            <Sliders size={16} /> Stock Adjustment
-          </button>
-          <button className="secondary-btn" onClick={() => setShowReceiveFifo(true)}>
-            <ArrowDownToLine size={16} /> FIFO Stock Receipt
-          </button>
+        <div className="parts-header-actions">
           <button className="primary-btn" onClick={() => setShowAddPart(true)}>
             <Plus size={16} /> Add Part SKU
           </button>
+          <div className="parts-sub-actions">
+            <button className="secondary-btn" onClick={() => setShowAdjust(true)}>
+              <Sliders size={15} /> Stock Adjustment
+            </button>
+            <button className="secondary-btn" onClick={() => setShowReceiveFifo(true)}>
+              <ArrowDownToLine size={15} /> FIFO Stock Receipt
+            </button>
+          </div>
         </div>
       </div>
 
@@ -259,57 +261,84 @@ export default function SparePartsPage() {
           className={activeTab === "catalog" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("catalog")}
         >
-          <Wrench size={15} /> Spare Parts Master ({parts.length})
+          <Wrench size={15} />
+          <span className="desktop-tab-label">Spare Parts Master ({parts.length})</span>
+          <span className="mobile-tab-label">Parts ({parts.length})</span>
         </button>
         <button
           className={activeTab === "batches" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("batches")}
         >
-          <Layers size={15} /> FIFO Batches
+          <Layers size={15} />
+          <span className="desktop-tab-label">FIFO Batches</span>
+          <span className="mobile-tab-label">Batches</span>
         </button>
         <button
           className={activeTab === "ledger" ? "primary-btn" : "secondary-btn"}
           onClick={() => setActiveTab("ledger")}
         >
-          <History size={15} /> Stock Movement Ledger
+          <History size={15} />
+          <span className="desktop-tab-label">Stock Movement Ledger</span>
+          <span className="mobile-tab-label">Ledger</span>
         </button>
       </div>
 
       {/* TAB 1: CATALOG */}
       {activeTab === "catalog" && (
         <div className="panel">
-          <div className="panel-toolbar" style={{ flexWrap: "wrap", gap: "10px" }}>
-            <div className="searchbox">
-              <Search size={16} />
-              <input
-                placeholder="Search part name, SKU, or compatible model..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && loadData()}
-              />
+          <div className="parts-toolbar-container">
+            <div className="parts-search-bar">
+              <div className="searchbox" style={{ flex: 1 }}>
+                <Search size={16} />
+                <input
+                  placeholder="Search part name, SKU, or compatible model..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && loadData()}
+                />
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="secondary-btn"
-              style={{
-                background: showLowStockOnly ? "#fff8e7" : undefined,
-                color: showLowStockOnly ? "#805b16" : undefined,
-                border: showLowStockOnly ? "1px solid #f3dfad" : undefined,
-              }}
-              onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-            >
-              <AlertTriangle size={15} />
-              {showLowStockOnly ? "Showing Low Stock" : "Filter Low Stock"}
-            </button>
+            <div className="parts-meta-bar">
+              <button
+                type="button"
+                className="secondary-btn"
+                style={{
+                  background: showLowStockOnly ? "#fff8e7" : undefined,
+                  color: showLowStockOnly ? "#805b16" : undefined,
+                  border: showLowStockOnly ? "1px solid #f3dfad" : undefined,
+                  fontSize: "11.5px",
+                  padding: "5px 10px",
+                }}
+                onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+              >
+                <AlertTriangle size={14} />
+                {showLowStockOnly ? "Showing Low Stock" : "Filter Low Stock"}
+              </button>
 
-            <button className="icon-btn" onClick={loadData} title="Refresh">
-              <RefreshCw size={16} />
-            </button>
-            <span className="count">{displayedParts.length} parts</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button className="icon-btn" onClick={loadData} title="Refresh">
+                  <RefreshCw size={15} />
+                </button>
+                <span
+                  className="count"
+                  style={{
+                    background: "#f1f5f9",
+                    color: "#475569",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                  }}
+                >
+                  ⚙️ {displayedParts.length} parts
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="table-wrap">
+          {/* 1. Desktop View Table */}
+          <div className="table-wrap desktop-parts-table">
             <table>
               <thead>
                 <tr>
@@ -401,6 +430,108 @@ export default function SparePartsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* 2. Mobile View: Responsive Part Cards */}
+          <div className="mobile-parts-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px" }}>
+                Loading parts catalog…
+              </div>
+            ) : displayedParts.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px", background: "#f8fafc", borderRadius: "8px" }}>
+                No spare parts match your query.
+              </div>
+            ) : (
+              displayedParts.map((p) => {
+                const isLow = p.quantity <= p.reorder_level;
+                return (
+                  <div key={p.id} className="mobile-part-card">
+                    {/* Header */}
+                    <div className="mobile-part-header">
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "14px", color: "#0f172a" }}>
+                          {p.name}
+                        </div>
+                        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                          <code>{p.sku}</code>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+                        <span className="tag" style={{ fontSize: "10.5px" }}>{p.category}</span>
+                        {isLow ? (
+                          <span className="tag" style={{ background: "#fff0ef", color: "#b42318", fontWeight: 700, fontSize: "10.5px" }}>
+                            <AlertTriangle size={11} style={{ display: "inline", marginRight: 2 }} />
+                            Low Stock
+                          </span>
+                        ) : (
+                          <span className="tag" style={{ background: "#e8f8f0", color: "#15945b", fontSize: "10.5px" }}>
+                            In Stock
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Metrics 3-column Grid */}
+                    <div className="mobile-part-metrics">
+                      <div className="mobile-part-metric-item">
+                        <span style={{ fontSize: "10px", color: "#64748b" }}>Available</span>
+                        <b style={{ color: isLow ? "#b42318" : "#15945b", fontSize: "13.5px" }}>
+                          {p.quantity} units
+                        </b>
+                      </div>
+                      <div className="mobile-part-metric-item">
+                        <span style={{ fontSize: "10px", color: "#64748b" }}>Reorder Level</span>
+                        <b style={{ fontSize: "12.5px", color: "#334155" }}>{p.reorder_level} units</b>
+                      </div>
+                      <div className="mobile-part-metric-item">
+                        <span style={{ fontSize: "10px", color: "#64748b" }}>Latest Cost</span>
+                        <b style={{ fontSize: "12.5px", color: "#0176d3" }}>
+                          ₹{Number(p.unit_cost || p.purchase_price || 0).toLocaleString("en-IN")}
+                        </b>
+                      </div>
+                    </div>
+
+                    {/* Compatibility */}
+                    <div className="mobile-part-compat">
+                      <span style={{ fontWeight: 600, color: "#64748b" }}>Fits:</span>
+                      <span>{p.compatible_models || "Universal / Not specified"}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mobile-part-actions">
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 10px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                        onClick={() => {
+                          setAdjustPartId(p.id);
+                          setShowAdjust(true);
+                        }}
+                        title="Stock Adjustment"
+                      >
+                        Adjust
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 10px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                        onClick={() => startEditPart(p)}
+                        title="Edit Part"
+                      >
+                        <Edit2 size={12} /> Edit
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        style={{ padding: "5px 8px", fontSize: "11px", color: "#b42318", borderColor: "#fecaca", justifyContent: "center" }}
+                        onClick={() => handleDeletePart(p.id, p.name)}
+                        title="Delete Part"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
 
@@ -414,7 +545,8 @@ export default function SparePartsPage() {
             <span className="count">{batches.length} FIFO batches</span>
           </div>
 
-          <div className="table-wrap">
+          {/* Desktop Table */}
+          <div className="table-wrap desktop-batches-table">
             <table>
               <thead>
                 <tr>
@@ -456,6 +588,60 @@ export default function SparePartsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Batches Cards */}
+          <div className="mobile-batches-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px" }}>
+                Loading FIFO batches…
+              </div>
+            ) : batches.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px", background: "#f8fafc", borderRadius: "8px" }}>
+                No batches registered yet.
+              </div>
+            ) : (
+              batches.map((b) => (
+                <div key={b.id} className="mobile-batch-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
+                        {b.part_name || "Part"}
+                      </div>
+                      <div style={{ fontSize: "10.5px", color: "#8291a5" }}>SKU: {b.sku}</div>
+                    </div>
+                    <code style={{ fontSize: "11px", color: "#0176d3" }}>#{b.id.slice(0, 8)}</code>
+                  </div>
+
+                  <div className="mobile-part-metrics" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Received</span>
+                      <b style={{ fontSize: "12px", color: "#334155" }}>{b.received_quantity}</b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Remaining</span>
+                      <b style={{ fontSize: "12px", color: b.remaining_quantity > 0 ? "#15945b" : "#8291a5" }}>
+                        {b.remaining_quantity}
+                      </b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Cost</span>
+                      <b style={{ fontSize: "12px", color: "#334155" }}>₹{b.unit_cost.toLocaleString("en-IN")}</b>
+                    </div>
+                    <div className="mobile-part-metric-item">
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Valuation</span>
+                      <b style={{ fontSize: "12px", color: "#0176d3" }}>
+                        ₹{(b.remaining_quantity * b.unit_cost).toLocaleString("en-IN")}
+                      </b>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "10.5px", color: "#8291a5" }}>
+                    Received: {new Date(b.received_at).toLocaleString("en-IN")}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -469,7 +655,8 @@ export default function SparePartsPage() {
             <span className="count">{ledger.length} immutable ledger records</span>
           </div>
 
-          <div className="table-wrap">
+          {/* Desktop Table */}
+          <div className="table-wrap desktop-ledger-table">
             <table>
               <thead>
                 <tr>
@@ -522,6 +709,63 @@ export default function SparePartsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Ledger Cards */}
+          <div className="mobile-ledger-cards">
+            {loading ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px" }}>
+                Loading stock ledger…
+              </div>
+            ) : ledger.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px 10px", color: "#64748b", fontSize: "13px", background: "#f8fafc", borderRadius: "8px" }}>
+                No stock movements recorded yet.
+              </div>
+            ) : (
+              ledger.map((l) => (
+                <div key={l.id} className="mobile-ledger-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
+                      {l.part_name || "Part"} <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 400 }}>({l.sku})</span>
+                    </div>
+                    <span
+                      className="tag"
+                      style={{
+                        background: l.movement_type === "purchase" ? "#e8f8f0" : l.movement_type === "issue" ? "#fff2e5" : "#edf5fc",
+                        color: l.movement_type === "purchase" ? "#15945b" : l.movement_type === "issue" ? "#e68a2e" : "#0176d3",
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        fontSize: "10px",
+                      }}
+                    >
+                      {l.movement_type}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "8px 10px", borderRadius: "6px" }}>
+                    <div>
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Qty Delta: </span>
+                      <b style={{ color: l.quantity_delta > 0 ? "#15945b" : "#b42318", fontSize: "13px" }}>
+                        {l.quantity_delta > 0 ? `+${l.quantity_delta}` : l.quantity_delta}
+                      </b>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Unit Cost: </span>
+                      <b style={{ fontSize: "12px", color: "#0176d3" }}>₹{l.unit_cost.toLocaleString("en-IN")}</b>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>Ref: </span>
+                      <span style={{ fontSize: "11px", fontWeight: 600 }}>{l.reference_type || "N/A"}</span>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "10.5px", color: "#8291a5", display: "flex", justifyContent: "space-between" }}>
+                    <span>{new Date(l.created_at).toLocaleString("en-IN")}</span>
+                    <code>{l.id.slice(0, 10)}...</code>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
