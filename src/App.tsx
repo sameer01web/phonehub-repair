@@ -21,6 +21,11 @@ export default function App() {
   return (
     <>
       <Routes>
+        {/* Dedicated Standalone Full-Screen Login Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signin" element={<LoginPage />} />
+
+        {/* Protected Dashboard Layout Routes */}
         <Route element={<Layout />}>
           {/* Main Operational Dashboard */}
           <Route index element={<Dashboard />} />
@@ -62,10 +67,6 @@ export default function App() {
 
           {/* General Settings */}
           <Route path="settings" element={<StaffPage />} />
-
-          {/* Authentication */}
-          <Route path="login" element={<LoginPage />} />
-          <Route path="signin" element={<LoginPage />} />
         </Route>
       </Routes>
 
