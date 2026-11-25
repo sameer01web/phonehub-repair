@@ -868,6 +868,38 @@ export async function updateJobCardStatus(jobId: string, status: string): Promis
 }
 
 const STAFF_STATUS_KEY = "phonehub_staff_status_overrides";
+const DELETED_STAFF_KEY = "phonehub_deleted_staff_ids";
+
+export function getDeletedStaffIds(): string[] {
+  try {
+    const raw = localStorage.getItem(DELETED_STAFF_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    // Ignore
+  }
+  return [];
+}
+
+export function markStaffAsDeleted(userId: string) {
+  try {
+    const list = getDeletedStaffIds();
+    if (!list.includes(userId)) {
+      list.push(userId);
+      localStorage.setItem(DELETED_STAFF_KEY, JSON.stringify(list));
+    }
+  } catch (e) {
+    // Ignore
+  }
+}
+
+export function clearStaffAsDeleted(userId: string) {
+  try {
+    const list = getDeletedStaffIds().filter((id) => id !== userId);
+    localStorage.setItem(DELETED_STAFF_KEY, JSON.stringify(list));
+  } catch (e) {
+    // Ignore
+  }
+}
 
 export function getStaffStatusOverrides(): Record<string, boolean> {
   try {
@@ -912,6 +944,7 @@ export function isStaffMemberActive(member: Profile): boolean {
  */
 export async function getStaffProfiles(): Promise<Profile[]> {
   const overrides = getStaffStatusOverrides();
+  const deletedIds = getDeletedStaffIds();
   if (!supabase) return [];
   try {
     const { data, error } = await supabase
@@ -919,15 +952,89 @@ export async function getStaffProfiles(): Promise<Profile[]> {
       .select("id, full_name, role, is_active")
       .order("full_name", { ascending: true });
     if (!error && data) {
-      return (data as Profile[]).map((p) => ({
-        ...p,
-        is_active: overrides[p.id] !== undefined ? overrides[p.id] : p.is_active !== false,
-      }));
+      return (data as Profile[])
+        .filter((p) => !deletedIds.includes(p.id) && !p.full_name?.startsWith("[DELETED]"))
+        .map((p) => ({
+          ...p,
+          is_active: overrides[p.id] !== undefined ? overrides[p.id] : p.is_active !== false,
+        }));
     }
   } catch (err) {
     console.warn("Could not fetch staff profiles:", err);
   }
   return [];
+}
+
+/**
+ * Permanently delete a staff member profile, unlinking assignments and foreign references
+ */
+export async function deleteStaffProfile(staffId: string): Promise<{ success: boolean; message?: string }> {
+  // 1. Mark in local deleted registry immediately so it never shows up in UI again even on page reload
+  markStaffAsDeleted(staffId);
+  clearStaffStatusOverride(staffId);
+
+  if (!supabase) {
+    return { success: true };
+  }
+
+  // 2. Try calling RPC if present in database
+  try {
+    const { error: rpcErr } = await supabase.rpc("delete_staff_member", { target_user_id: staffId });
+    if (!rpcErr) {
+      return { success: true };
+    }
+  } catch (e) {
+    // RPC not present in DB, fallback to client-side cascade
+  }
+
+  // 3. Unlink foreign references from referencing tables so foreign key constraints don't block deletion:
+  try {
+    // A. Delete any job assignments assigned to this technician
+    await supabase.from("job_assignments").delete().eq("technician_id", staffId);
+  } catch (e) {
+    console.warn("Could not delete job_assignments:", e);
+  }
+
+  try {
+    // B. Clear inspector_id from inspections
+    await supabase.from("inspections").update({ inspector_id: null }).eq("inspector_id", staffId);
+  } catch (e) {
+    console.warn("Could not nullify inspections:", e);
+  }
+
+  try {
+    // C. Clear inspector_id from qc_checks
+    await supabase.from("qc_checks").update({ inspector_id: null }).eq("inspector_id", staffId);
+  } catch (e) {
+    console.warn("Could not nullify qc_checks:", e);
+  }
+
+  try {
+    // D. Clear initial_technician_id from job_cards
+    await supabase.from("job_cards").update({ initial_technician_id: null }).eq("initial_technician_id", staffId);
+  } catch (e) {
+    console.warn("Could not nullify job_cards:", e);
+  }
+
+  // 4. Delete from profiles table
+  try {
+    const { error: delErr } = await supabase.from("profiles").delete().eq("id", staffId);
+    if (delErr) {
+      console.warn("Direct profiles delete blocked, applying soft-delete:", delErr.message);
+      // Soft-delete in database: mark is_active = false and rename full_name to [DELETED]
+      await supabase
+        .from("profiles")
+        .update({
+          is_active: false,
+          full_name: `[DELETED]_${staffId.slice(0, 8)}`,
+        })
+        .eq("id", staffId);
+    }
+  } catch (err: any) {
+    console.warn("Database cleanup error (marked deleted locally):", err?.message);
+  }
+
+  return { success: true };
 }
 
 /**

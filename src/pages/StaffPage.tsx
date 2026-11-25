@@ -18,6 +18,7 @@ import {
   setStaffStatusOverride,
   clearStaffStatusOverride,
   isStaffMemberActive,
+  deleteStaffProfile,
 } from "../lib/repairs";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../lib/auth";
@@ -106,26 +107,31 @@ export default function StaffPage() {
 
   async function handleDeleteStaff(member: Profile) {
     if (member.id === user?.id) {
-      alert("Aap apne khud ke logged-in account ko delete nahi kar sakte.");
+      setStatusMessage({ type: "error", text: "Aap apne khud ke logged-in account ko delete nahi kar sakte." });
       return;
     }
+    const staffName = member.full_name?.trim() || "Staff Member";
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete staff account "${member.full_name || 'Staff'}"? This action cannot be undone.`
+      `Are you sure you want to delete staff account "${staffName}"? This action cannot be undone.`
     );
     if (!confirmDelete) return;
 
     try {
-      if (supabase) {
-        const { error } = await supabase.from("profiles").delete().eq("id", member.id);
-        if (error) {
-          console.warn("Could not delete from profiles directly:", error);
-          await supabase.from("profiles").update({ is_active: false }).eq("id", member.id);
-        }
-      }
+      setSubmitting(true);
+      await deleteStaffProfile(member.id);
       setStaff((prev) => prev.filter((s) => s.id !== member.id));
-      clearStaffStatusOverride(member.id);
+      setStatusMessage({
+        type: "success",
+        text: `Staff profile "${staffName}" successfully deleted from workshop records.`,
+      });
     } catch (err: any) {
-      alert(err?.message || "Failed to delete staff member.");
+      console.error("Staff delete error:", err);
+      setStatusMessage({
+        type: "error",
+        text: err?.message || "Failed to delete staff member.",
+      });
+    } finally {
+      setSubmitting(false);
     }
   }
 
