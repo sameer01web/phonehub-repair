@@ -327,6 +327,13 @@ nav a:hover {
   margin-bottom: 20px;
 }
 
+.technician-workload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .responsive-split-2 {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
@@ -1143,6 +1150,13 @@ select option {
   .dashboard-kpi-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .technician-workload-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
     margin-bottom: 16px !important;
   }
 
@@ -2050,6 +2064,13 @@ select option {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .technician-workload-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
     margin-bottom: 16px !important;
   }
 

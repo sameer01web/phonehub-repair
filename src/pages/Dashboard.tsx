@@ -1690,7 +1690,7 @@ export default function Dashboard() {
           {technicianStats.length === 0 ? (
             <div className="empty">No technicians or repair assignments recorded yet.</div>
           ) : (
-            <div className="responsive-grid-3">
+            <div className="technician-workload-grid">
               {technicianStats.map((tech) => (
                 <div
                   key={tech.id}
