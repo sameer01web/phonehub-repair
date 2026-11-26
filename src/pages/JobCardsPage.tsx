@@ -24,6 +24,7 @@ import {
   Tag,
   Copy,
   Users,
+  ChevronDown,
 } from "lucide-react";
 import {
   getJobCards,
@@ -1157,83 +1158,126 @@ export default function JobCardsPage() {
             className="modal"
             onSubmit={handleCreateJob}
             style={{
-              maxWidth: "660px",
+              maxWidth: "600px",
               width: "100%",
               maxHeight: "88vh",
               display: "flex",
               flexDirection: "column",
-              padding: "20px 22px 18px",
+              padding: "18px 20px 16px",
               boxSizing: "border-box",
               overflow: "hidden",
+              borderRadius: "16px",
             }}
           >
-            <div className="modal-head" style={{ flexShrink: 0, marginBottom: "12px" }}>
+            <div className="modal-head" style={{ flexShrink: 0, marginBottom: "12px", paddingBottom: "10px", borderBottom: "1px solid #f1f5f9" }}>
               <div>
-                <h2>Open Repair Job Card</h2>
-                <p>Register incoming handset and open an active bench repair ticket.</p>
+                <h2 style={{ fontSize: "16px", color: "#0f172a", margin: "0 0 3px 0" }}>Open Repair Job Card</h2>
+                <p style={{ fontSize: "11.5px", color: "#64748b", margin: 0 }}>Register incoming handset and open an active bench repair ticket.</p>
               </div>
               <button type="button" className="icon-btn" onClick={() => setShowAddJob(false)}>×</button>
             </div>
 
-            {/* Scrollable Modal Body */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: "6px" }}>
-              {/* Intake Mode Switcher */}
-              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", borderBottom: "1px solid #e0e7ef" }}>
+            {/* Scrollable Modal Body with thin scrollbar */}
+            <div className="modal-scroll-body" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: "4px" }}>
+              {/* Intake Mode Segmented Control */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  background: "#f1f5f9",
+                  padding: "4px",
+                  borderRadius: "9px",
+                  marginBottom: "16px",
+                  gap: "4px",
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setIntakeMode("new_phone")}
                   style={{
-                    padding: "8px 14px",
+                    padding: "8px 10px",
+                    borderRadius: "7px",
                     border: "none",
-                    background: "none",
-                    borderBottom: intakeMode === "new_phone" ? "3px solid #0176d3" : "3px solid transparent",
+                    background: intakeMode === "new_phone" ? "#ffffff" : "transparent",
+                    color: intakeMode === "new_phone" ? "#0176d3" : "#64748b",
                     fontWeight: intakeMode === "new_phone" ? 700 : 500,
-                    color: intakeMode === "new_phone" ? "#0176d3" : "#687b92",
-                    cursor: "pointer",
                     fontSize: "12px",
+                    boxShadow: intakeMode === "new_phone" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  ● Direct Handset Intake & Ticket
+                  + New Handset Intake
                 </button>
                 <button
                   type="button"
                   onClick={() => setIntakeMode("existing_phone")}
                   style={{
-                    padding: "8px 14px",
+                    padding: "8px 10px",
+                    borderRadius: "7px",
                     border: "none",
-                    background: "none",
-                    borderBottom: intakeMode === "existing_phone" ? "3px solid #0176d3" : "3px solid transparent",
+                    background: intakeMode === "existing_phone" ? "#ffffff" : "transparent",
+                    color: intakeMode === "existing_phone" ? "#0176d3" : "#64748b",
                     fontWeight: intakeMode === "existing_phone" ? 700 : 500,
-                    color: intakeMode === "existing_phone" ? "#0176d3" : "#687b92",
-                    cursor: "pointer",
                     fontSize: "12px",
+                    boxShadow: intakeMode === "existing_phone" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  Select Existing Inventory Phone
+                  Select from Inventory
                 </button>
               </div>
 
               {intakeMode === "new_phone" ? (
                 <div className="form-grid">
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Brand *
-                    <input required placeholder="e.g. Apple, Samsung" value={brand} onChange={(e) => setBrand(e.target.value)} />
+                    <input
+                      required
+                      placeholder="e.g. Apple, Samsung, Xiaomi"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                    />
                   </label>
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Model *
-                    <input required placeholder="e.g. iPhone 14 Pro, S23" value={model} onChange={(e) => setModel(e.target.value)} />
+                    <input
+                      required
+                      placeholder="e.g. iPhone 15 Pro, Galaxy S24"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                    />
                   </label>
-                  <label>
-                    IMEI (14-16 digits, optional)
-                    <input placeholder="e.g. 354890098765432" value={imei} onChange={(e) => setImei(e.target.value)} />
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                    IMEI Number (14-16 digits)
+                    <input
+                      placeholder="e.g. 354890098765432"
+                      value={imei}
+                      onChange={(e) => setImei(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                    />
                   </label>
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Color
-                    <input value={color} onChange={(e) => setColor(e.target.value)} />
+                    <input
+                      placeholder="e.g. Black, Blue, Gold"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                    />
                   </label>
-                  <label style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ gridColumn: "1 / -1", fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Storage Capacity
-                    <select value={storage} onChange={(e) => setStorage(e.target.value)}>
+                    <select
+                      value={storage}
+                      onChange={(e) => setStorage(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", background: "#fff" }}
+                    >
                       <option value="64GB">64GB</option>
                       <option value="128GB">128GB</option>
                       <option value="256GB">256GB</option>
@@ -1244,39 +1288,107 @@ export default function JobCardsPage() {
                 </div>
               ) : (
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "6px" }}>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "6px" }}>
                     Select Phone from Inventory:
-                    <select
-                      value={existingDeviceId}
-                      onChange={(e) => setExistingDeviceId(e.target.value)}
-                      style={{ height: "36px", border: "1px solid #e0e7ef", borderRadius: "6px", padding: "0 8px" }}
-                    >
-                      {devices.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.brand} {d.model} (IMEI: {d.imei1 || "N/A"}) — Status: {formatDeviceStatus(d.status)}
-                        </option>
-                      ))}
-                    </select>
+                    <div style={{ position: "relative", width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                      <select
+                        value={existingDeviceId}
+                        onChange={(e) => setExistingDeviceId(e.target.value)}
+                        style={{
+                          width: "100%",
+                          maxWidth: "100%",
+                          height: "40px",
+                          border: "1.5px solid #cbd5e1",
+                          borderRadius: "8px",
+                          padding: "0 34px 0 12px",
+                          fontSize: "12.5px",
+                          color: "#0f172a",
+                          background: "#ffffff",
+                          outline: "none",
+                          fontWeight: 600,
+                          boxSizing: "border-box",
+                          appearance: "none",
+                          WebkitAppearance: "none",
+                          cursor: "pointer",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {devices.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)})
+                          </option>
+                        ))}
+                      </select>
+                      <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }}>
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
                   </label>
+
+                  {/* Selected Device Preview Card */}
+                  {(() => {
+                    const selectedDev = devices.find((d) => d.id === existingDeviceId) || devices[0];
+                    if (!selectedDev) return null;
+                    return (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          background: "#f0f7ff",
+                          border: "1px solid #bfdbfe",
+                          borderRadius: "8px",
+                          padding: "8px 12px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "8px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div>
+                          <b style={{ color: "#0176d3", fontSize: "13px" }}>{selectedDev.brand} {selectedDev.model}</b>
+                          <div style={{ fontSize: "11px", color: "#475569", marginTop: "2px" }}>
+                            IMEI: <code style={{ color: "#0f172a", fontWeight: 700 }}>{selectedDev.imei1 || "No IMEI recorded"}</code>
+                          </div>
+                        </div>
+                        <span className="tag" style={{ background: "#dbeafe", color: "#1d4ed8", fontWeight: 700, fontSize: "11px" }}>
+                          {formatDeviceStatus(selectedDev.status)}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
-              <div style={{ marginTop: "12px", display: "grid", gap: "10px" }}>
-                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
+              <div style={{ marginTop: "14px", display: "grid", gap: "12px" }}>
+                <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
                   Reported Complaint / Issue *
                   <input
                     required
-                    placeholder="e.g. Broken screen display, touch unresponsive, water damage"
+                    placeholder="e.g. Broken screen display, touch unresponsive, battery drain"
                     value={complaint}
                     onChange={(e) => setComplaint(e.target.value)}
-                    style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
+                    style={{
+                      height: "38px",
+                      border: "1.5px solid #cbd5e1",
+                      borderRadius: "8px",
+                      padding: "0 10px",
+                      fontSize: "12.5px",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
                   />
                 </label>
 
                 <div className="form-grid">
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Repair Priority
-                    <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                    <select
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", background: "#fff", width: "100%", boxSizing: "border-box" }}
+                    >
                       <option value="Normal">Normal</option>
                       <option value="Urgent">Urgent (Express)</option>
                       <option value="High">High</option>
@@ -1284,47 +1396,102 @@ export default function JobCardsPage() {
                     </select>
                   </label>
 
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Estimated Repair Cost (₹)
-                    <input type="number" min="0" value={estimatedCost} onChange={(e) => setEstimatedCost(e.target.value)} />
+                    <input
+                      type="number"
+                      min="0"
+                      value={estimatedCost}
+                      onChange={(e) => setEstimatedCost(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", width: "100%", boxSizing: "border-box" }}
+                    />
                   </label>
 
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Assign Initial Technician
-                    <select value={initialTechId} onChange={(e) => setInitialTechId(e.target.value)}>
-                      <option value="">-- Unassigned (Assign Later) --</option>
-                      {staffList
-                        .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
-                        .map((tech) => (
-                          <option key={tech.id} value={tech.id}>
-                            {tech.full_name || "Staff"} ({tech.role})
-                          </option>
-                        ))}
-                    </select>
+                    <div style={{ position: "relative", width: "100%", boxSizing: "border-box" }}>
+                      <select
+                        value={initialTechId}
+                        onChange={(e) => setInitialTechId(e.target.value)}
+                        style={{
+                          width: "100%",
+                          height: "38px",
+                          border: "1.5px solid #cbd5e1",
+                          borderRadius: "8px",
+                          padding: "0 30px 0 10px",
+                          fontSize: "12px",
+                          background: "#fff",
+                          boxSizing: "border-box",
+                          appearance: "none",
+                          WebkitAppearance: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <option value="">-- Unassigned (Assign Later) --</option>
+                        {staffList
+                          .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
+                          .map((tech) => (
+                            <option key={tech.id} value={tech.id}>
+                              {tech.full_name || "Staff"} ({tech.role?.replace(/_/g, " ")})
+                            </option>
+                          ))}
+                      </select>
+                      <div style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }}>
+                        <ChevronDown size={14} />
+                      </div>
+                    </div>
                   </label>
 
-                  <label>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
                     Initial Bench Task
-                    <input value={initialTask} onChange={(e) => setInitialTask(e.target.value)} />
+                    <input
+                      value={initialTask}
+                      onChange={(e) => setInitialTask(e.target.value)}
+                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", width: "100%", boxSizing: "border-box" }}
+                    />
                   </label>
                 </div>
 
-                <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
+                <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
                   Internal Notes & Repair Precautions
                   <textarea
                     rows={2}
                     placeholder="e.g. Customer reported power button sticky. Backup recommended before firmware."
                     value={internalNotes}
                     onChange={(e) => setInternalNotes(e.target.value)}
-                    style={{ border: "1px solid #e0e7ef", borderRadius: "6px", padding: "8px", font: "inherit", fontSize: "12px" }}
+                    style={{ border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "8px 10px", font: "inherit", fontSize: "12px", width: "100%", boxSizing: "border-box" }}
                   />
                 </label>
               </div>
             </div>
 
-            <div className="modal-actions" style={{ flexShrink: 0, marginTop: "14px", paddingTop: "12px", borderTop: "1px solid #e0e7ef" }}>
-              <button type="button" className="secondary-btn" onClick={() => setShowAddJob(false)}>Cancel</button>
-              <button className="primary-btn" disabled={submitting}>
+            <div
+              className="modal-actions"
+              style={{
+                flexShrink: 0,
+                marginTop: "12px",
+                paddingTop: "12px",
+                borderTop: "1px solid #f1f5f9",
+                display: "grid",
+                gridTemplateColumns: "1fr 2fr",
+                gap: "10px",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            >
+              <button
+                type="button"
+                className="secondary-btn"
+                style={{ justifyContent: "center", height: "40px", fontSize: "13px", fontWeight: 600 }}
+                onClick={() => setShowAddJob(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="primary-btn"
+                style={{ justifyContent: "center", height: "40px", fontSize: "13px", fontWeight: 700 }}
+                disabled={submitting}
+              >
                 {submitting ? "Opening Ticket..." : "Create Repair Job Card"}
               </button>
             </div>
