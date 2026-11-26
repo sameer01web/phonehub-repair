@@ -1208,10 +1208,8 @@ export default function Dashboard() {
                     <tr>
                       <th>Brand & Model</th>
                       <th>IMEI Number</th>
-                      <th>Condition Grade</th>
                       <th>Storage & Color</th>
                       <th>Current Status</th>
-                      <th>Purchase Cost</th>
                       <th>Intake Date</th>
                       <th style={{ textAlign: "right" }}>Action</th>
                     </tr>
@@ -1225,11 +1223,6 @@ export default function Dashboard() {
                         <td>
                           <span style={{ fontFamily: "monospace", fontSize: "12px", color: "#0176d3" }}>
                             {dev.imei || dev.imei1 || "No IMEI"}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="tag" style={{ background: "#f1f5f9", color: "#334155" }}>
-                            {dev.condition || dev.condition_grade || "Good"}
                           </span>
                         </td>
                         <td style={{ fontSize: "12px", color: "#475569" }}>
@@ -1257,9 +1250,6 @@ export default function Dashboard() {
                           >
                             {(dev.status || "received").replace(/_/g, " ")}
                           </span>
-                        </td>
-                        <td style={{ fontWeight: 600, color: "#1e293b" }}>
-                          ₹{Number(dev.purchase_cost || 0).toLocaleString("en-IN")}
                         </td>
                         <td>
                           <small style={{ color: "#64748b" }}>
