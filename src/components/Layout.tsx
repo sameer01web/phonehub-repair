@@ -113,7 +113,7 @@ export default function Layout() {
   });
 
   function handleMenuToggle() {
-    if (window.innerWidth <= 700) {
+    if (window.innerWidth <= 768) {
       setOpen((prev) => !prev);
     } else {
       setDesktopCollapsed((prev) => {

@@ -849,7 +849,7 @@ select option {
 /* ========================================================================= */
 /* DESKTOP COLLAPSIBLE SIDEBAR                                               */
 /* ========================================================================= */
-@media (min-width: 701px) {
+@media (min-width: 769px) {
   .sidebar.collapsed {
     width: 72px !important;
     padding: 20px 8px !important;
@@ -954,9 +954,9 @@ select option {
 }
 
 /* ========================================================================= */
-/* MOBILE OVERHAUL MEDIA QUERY (max-width: 700px) */
+/* MOBILE OVERHAUL MEDIA QUERY (max-width: 768px) */
 /* ========================================================================= */
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   /* Prevent horizontal screen sway */
   body, .shell, .main {
     overflow-x: hidden !important;
@@ -1109,11 +1109,11 @@ select option {
   /* 3. SMOOTH SCROLLING CONTENT IN-BETWEEN TOP & BOTTOM BARS */
   .main {
     margin-left: 0 !important;
-    padding-top: 0 !important;
+    padding-top: 56px !important;
   }
 
   .content {
-    padding: 60px 12px calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 12px calc(74px + env(safe-area-inset-bottom, 0px)) !important;
     width: 100% !important;
     max-width: 100vw !important;
     box-sizing: border-box !important;
