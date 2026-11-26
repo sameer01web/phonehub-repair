@@ -1870,11 +1870,13 @@ select option {
   padding-top: 4px;
 }
 
-.desktop-jobs-table {
+.desktop-jobs-table,
+.desktop-dashboard-jobs-table {
   display: block;
 }
 
-.mobile-jobs-cards {
+.mobile-jobs-cards,
+.mobile-dashboard-jobs-cards {
   display: none;
 }
 
@@ -2281,6 +2283,7 @@ select option {
 
   .desktop-devices-table,
   .desktop-jobs-table,
+  .desktop-dashboard-jobs-table,
   .desktop-parts-table,
   .desktop-batches-table,
   .desktop-ledger-table,
@@ -2299,6 +2302,7 @@ select option {
 
   .mobile-devices-cards,
   .mobile-jobs-cards,
+  .mobile-dashboard-jobs-cards,
   .mobile-parts-cards,
   .mobile-batches-cards,
   .mobile-ledger-cards,

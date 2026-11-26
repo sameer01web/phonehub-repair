@@ -1757,18 +1757,46 @@ export default function Dashboard() {
       </section>
 
       {/* Recent Repair Activities Queue */}
-      <section className="panel">
-        <div className="section-head">
+      <section className="panel" style={{ overflow: "hidden" }}>
+        <div
+          className="section-head"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "12px",
+            marginBottom: "14px",
+          }}
+        >
           <div>
-            <h2>Recent Repair Activities & Work Orders</h2>
-            <p>Live feed of smartphones registered, diagnosed, and repaired in the workshop</p>
+            <h2 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "#0f172a" }}>
+              Recent Repair Activities & Work Orders
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: "4px 0 0 0" }}>
+              Live feed of smartphones registered, diagnosed, and repaired in the workshop
+            </p>
           </div>
-          <Link to="/jobs" className="secondary-btn" style={{ fontSize: "11px", textDecoration: "none" }}>
+          <Link
+            to="/jobs"
+            className="secondary-btn"
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              padding: "7px 14px",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              borderRadius: "8px",
+            }}
+          >
             View Full Job Cards List →
           </Link>
         </div>
 
-        <div className="table-wrap" style={{ marginTop: "14px" }}>
+        {/* 1. Desktop View: Comprehensive 8-Column Workshop Table */}
+        <div className="desktop-dashboard-jobs-table table-wrap" style={{ marginTop: "14px" }}>
           <table>
             <thead>
               <tr>
@@ -1879,6 +1907,162 @@ export default function Dashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* 2. Mobile View: Touch-Friendly Responsive Repair Activity Cards (No Squished Scrollbars) */}
+        <div className="mobile-dashboard-jobs-cards" style={{ marginTop: "14px" }}>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "24px", color: "#64748b", background: "#f8fafc", borderRadius: "10px", fontSize: "13px" }}>
+              Loading repair activity...
+            </div>
+          ) : filteredJobs.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "26px", color: "#64748b", background: "#f8fafc", borderRadius: "10px", fontSize: "13px" }}>
+              No repair activity found for the selected date range.
+            </div>
+          ) : (
+            filteredJobs.slice(0, 8).map((job) => {
+              const jobPriority = (job.priority || "normal").toLowerCase();
+              const priorityBg =
+                jobPriority === "urgent" ? "#fef2f2" : jobPriority === "high" ? "#fff7ed" : "#f1f5f9";
+              const priorityColor =
+                jobPriority === "urgent" ? "#dc2626" : jobPriority === "high" ? "#ea580c" : "#64748b";
+
+              const assignedTechs =
+                job.assignments && job.assignments.length > 0
+                  ? job.assignments.map((a: any) => a.technician?.full_name || a.technician_name || "Tech").join(", ")
+                  : "Unassigned";
+
+              const isCompleted = job.status === "completed";
+              const isInProgress = job.status === "in_progress";
+              const isQc = job.status === "qc_pending";
+
+              const statusBg = isCompleted ? "#e8f8f0" : isInProgress ? "#fff7ed" : isQc ? "#f1edff" : "#edf5fc";
+              const statusColor = isCompleted ? "#15803d" : isInProgress ? "#c2410c" : isQc ? "#7955c7" : "#0176d3";
+
+              const problem = job.problem_description || job.complaint || job.diagnosis;
+
+              return (
+                <div
+                  key={job.id}
+                  style={{
+                    background: "#ffffff",
+                    border: "1.5px solid #e2e8f0",
+                    borderRadius: "12px",
+                    padding: "13px 14px",
+                    boxShadow: "0 2px 6px rgba(15, 23, 42, 0.04)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "9px",
+                  }}
+                >
+                  {/* Top Line: Ticket Code + Status + Date */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontWeight: 800,
+                          fontSize: "12.5px",
+                          color: "#0176d3",
+                          background: "#edf5fc",
+                          padding: "3px 8px",
+                          borderRadius: "6px",
+                          border: "1px solid #d4e7f8",
+                        }}
+                      >
+                        {job.job_number || `JOB-${job.id.slice(0, 6).toUpperCase()}`}
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                        {job.created_at ? new Date(job.created_at).toLocaleDateString("en-IN") : "Today"}
+                      </span>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: "10.5px",
+                        fontWeight: 700,
+                        textTransform: "capitalize",
+                        background: statusBg,
+                        color: statusColor,
+                        padding: "3px 9px",
+                        borderRadius: "12px",
+                        border: `1px solid ${statusBg}`,
+                      }}
+                    >
+                      {job.status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+
+                  {/* Device Name & IMEI */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px", flexWrap: "wrap" }}>
+                    <b style={{ fontSize: "14px", color: "#0f172a", fontWeight: 700 }}>
+                      {job.device ? `${job.device.brand} ${job.device.model}` : "Unknown Handset"}
+                    </b>
+                    <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#475569", background: "#f8fafc", padding: "2px 7px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                      IMEI: {job.device?.imei || job.device?.imei1 || "N/A"}
+                    </span>
+                  </div>
+
+                  {/* Problem Callout Box */}
+                  {problem && (
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        borderLeft: "3px solid #0176d3",
+                        borderRadius: "0 6px 6px 0",
+                        padding: "7px 10px",
+                        fontSize: "12px",
+                        color: "#334155",
+                      }}
+                    >
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "2px" }}>
+                        Reported Issue / Fault:
+                      </span>
+                      {problem}
+                    </div>
+                  )}
+
+                  {/* Footer: Tech + Priority + View Action */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "8px", borderTop: "1px solid #f1f5f9" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "11px", color: "#64748b" }}>Tech:</span>
+                      <b style={{ fontSize: "11px", color: assignedTechs === "Unassigned" ? "#94a3b8" : "#334155" }}>
+                        {assignedTechs}
+                      </b>
+                      <span
+                        style={{
+                          fontSize: "9.5px",
+                          fontWeight: 700,
+                          color: priorityColor,
+                          background: priorityBg,
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {job.priority || "Normal"}
+                      </span>
+                    </div>
+
+                    <Link
+                      to="/jobs"
+                      style={{
+                        fontSize: "11.5px",
+                        fontWeight: 600,
+                        color: "#0176d3",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                      }}
+                    >
+                      Open Job →
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
     </>
