@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Headphones,
   Search,
@@ -49,6 +49,7 @@ export default function AccessoriesPage() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"default" | "stock" | "purchase" | "retail">("default");
 
   // Scanned item modal or quick lookup
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -142,13 +143,33 @@ export default function AccessoriesPage() {
     }
   }
 
-  // Filter items for display
-  const displayItems = items.filter((item) => {
-    if (lowStockOnly && item.current_stock > item.minimum_stock) {
-      return false;
+  // Filter and sort items for display
+  const displayItems = useMemo(() => {
+    let list = items.filter((item) => {
+      if (lowStockOnly && item.current_stock > item.minimum_stock) {
+        return false;
+      }
+      return true;
+    });
+
+    if (sortBy === "stock") {
+      list = [...list].sort((a, b) => Number(b.current_stock || 0) - Number(a.current_stock || 0));
+    } else if (sortBy === "purchase") {
+      list = [...list].sort(
+        (a, b) =>
+          Number(b.current_stock || 0) * Number(b.purchase_price || 0) -
+          Number(a.current_stock || 0) * Number(a.purchase_price || 0)
+      );
+    } else if (sortBy === "retail") {
+      list = [...list].sort(
+        (a, b) =>
+          Number(b.current_stock || 0) * Number(b.selling_price || 0) -
+          Number(a.current_stock || 0) * Number(a.selling_price || 0)
+      );
     }
-    return true;
-  });
+
+    return list;
+  }, [items, lowStockOnly, sortBy]);
 
   // Calculate metrics
   const totalSkus = items.length;
@@ -308,9 +329,18 @@ export default function AccessoriesPage() {
         </div>
       </div>
 
-      {/* Metrics Banner */}
+      {/* Metrics Banner (Clickable Interactive Cards) */}
       <div className="responsive-grid-5" style={{ marginBottom: "22px" }}>
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${!lowStockOnly && sortBy === "default" && selectedCategory === "all" ? "active" : ""}`}
+          onClick={() => {
+            setLowStockOnly(false);
+            setSelectedCategory("all");
+            setSortBy("default");
+          }}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view all accessories (reset filters)"
+        >
           <div className="stat-icon Blue">
             <Tag size={18} />
           </div>
@@ -319,34 +349,66 @@ export default function AccessoriesPage() {
           <div className="stat-foot">Catalogued items</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${sortBy === "stock" ? "active" : ""}`}
+          onClick={() => {
+            setLowStockOnly(false);
+            setSortBy(sortBy === "stock" ? "default" : "stock");
+          }}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to sort products by highest units in stock"
+        >
           <div className="stat-icon Purple">
             <Package size={18} />
           </div>
           <div className="stat-label">Total Units in Stock</div>
           <div className="stat-value">{totalUnits}</div>
-          <div className="stat-foot">Units on rack/shelves</div>
+          <div className="stat-foot">{sortBy === "stock" ? "Sorted: High to low stock" : "Units on rack/shelves"}</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${sortBy === "purchase" ? "active" : ""}`}
+          onClick={() => {
+            setLowStockOnly(false);
+            setSortBy(sortBy === "purchase" ? "default" : "purchase");
+          }}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to sort products by highest purchase inventory cost"
+        >
           <div className="stat-icon Green">
             <DollarSign size={18} />
           </div>
           <div className="stat-label">Purchase Valuation</div>
           <div className="stat-value">₹{totalValuation.toLocaleString()}</div>
-          <div className="stat-foot">Cost of inventory</div>
+          <div className="stat-foot">{sortBy === "purchase" ? "Sorted: High to low valuation" : "Cost of inventory"}</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${sortBy === "retail" ? "active" : ""}`}
+          onClick={() => {
+            setLowStockOnly(false);
+            setSortBy(sortBy === "retail" ? "default" : "retail");
+          }}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to sort products by expected retail sales value"
+        >
           <div className="stat-icon Blue">
             <TrendingUp size={18} />
           </div>
           <div className="stat-label">Retail Value</div>
           <div className="stat-value">₹{potentialRevenue.toLocaleString()}</div>
-          <div className="stat-foot">Expected sales value</div>
+          <div className="stat-foot">{sortBy === "retail" ? "Sorted: High to low retail value" : "Expected sales value"}</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${lowStockOnly ? "active" : ""}`}
+          onClick={() => {
+            setSortBy("default");
+            setLowStockOnly(!lowStockOnly);
+          }}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter products below minimum stock level"
+        >
           <div className="stat-icon Orange">
             <AlertTriangle size={18} />
           </div>
@@ -354,7 +416,7 @@ export default function AccessoriesPage() {
           <div className="stat-value" style={{ color: lowStockCount > 0 ? "#b42318" : "#15945b" }}>
             {lowStockCount}
           </div>
-          <div className="stat-foot">Below minimum reorder level</div>
+          <div className="stat-foot">{lowStockOnly ? "Filtered: Low stock items only" : "Below minimum reorder level"}</div>
         </div>
       </div>
 

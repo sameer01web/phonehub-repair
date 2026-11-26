@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -33,6 +33,7 @@ export default function QualityControlPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [filterVerdict, setFilterVerdict] = useState<"all" | "passed" | "rework" | "awaiting">("all");
 
   // Modal & Checklist State
   const [showModal, setShowModal] = useState(false);
@@ -119,6 +120,12 @@ export default function QualityControlPage() {
     loadData();
   }, []);
 
+  const filteredQcList = useMemo(() => {
+    if (filterVerdict === "passed") return qcList.filter((q) => q.is_passed);
+    if (filterVerdict === "rework") return qcList.filter((q) => !q.is_passed);
+    return qcList;
+  }, [qcList, filterVerdict]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -177,16 +184,26 @@ export default function QualityControlPage() {
         </div>
       )}
 
-      {/* QC Summary Metrics */}
+      {/* QC Summary Metrics (Clickable Interactive Cards) */}
       <div className="stats-grid">
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${filterVerdict === "all" ? "active" : ""}`}
+          onClick={() => setFilterVerdict("all")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view all QC audits"
+        >
           <div className="stat-icon Blue"><ShieldCheck size={20} /></div>
           <div className="stat-label">Total QC Checks</div>
           <div className="stat-value">{qcList.length}</div>
           <div className="stat-foot">Lifetime inspections</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${filterVerdict === "passed" ? "active" : ""}`}
+          onClick={() => setFilterVerdict(filterVerdict === "passed" ? "all" : "passed")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter passed QC audits"
+        >
           <div className="stat-icon Green"><CheckCircle2 size={20} /></div>
           <div className="stat-label">QC Passed (Ready for Handover)</div>
           <div className="stat-value" style={{ color: "#15945b" }}>
@@ -195,7 +212,12 @@ export default function QualityControlPage() {
           <div className="stat-foot">Approved devices</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${filterVerdict === "rework" ? "active" : ""}`}
+          onClick={() => setFilterVerdict(filterVerdict === "rework" ? "all" : "rework")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter rework required audits"
+        >
           <div className="stat-icon Orange"><AlertTriangle size={20} /></div>
           <div className="stat-label">Rework Required</div>
           <div className="stat-value" style={{ color: "#b42318" }}>
@@ -204,7 +226,12 @@ export default function QualityControlPage() {
           <div className="stat-foot">Returned to technicians</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${filterVerdict === "awaiting" ? "active" : ""}`}
+          onClick={() => setFilterVerdict(filterVerdict === "awaiting" ? "all" : "awaiting")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view handsets awaiting QC inspection"
+        >
           <div className="stat-icon Purple"><Smartphone size={20} /></div>
           <div className="stat-label">Devices Awaiting QC</div>
           <div className="stat-value">{qcEligibleDevices.length}</div>
@@ -213,37 +240,100 @@ export default function QualityControlPage() {
       </div>
 
       <div className="panel">
-        <div className="panel-toolbar">
-          <button className="icon-btn" onClick={loadData} title="Refresh">
-            <RefreshCw size={16} />
-          </button>
-          <span className="count">{qcList.length} QC audits logged</span>
+        <div className="panel-toolbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button className="icon-btn" onClick={loadData} title="Refresh">
+              <RefreshCw size={16} />
+            </button>
+            <span className="count">
+              {filterVerdict === "awaiting"
+                ? `${qcEligibleDevices.length} devices awaiting QC audit`
+                : `${filteredQcList.length} of ${qcList.length} QC audits logged`}
+            </span>
+          </div>
+          {filterVerdict !== "all" && (
+            <button
+              className="secondary-btn"
+              style={{ padding: "4px 10px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+              onClick={() => setFilterVerdict("all")}
+            >
+              Reset Filter (Show All)
+            </button>
+          )}
         </div>
 
         <div className="table-wrap desktop-qc-table">
           <table>
             <thead>
-              <tr>
-                <th>Audit Timestamp</th>
-                <th>Device ID</th>
-                <th>QC Verdict</th>
-                <th>Failure Reason</th>
-                <th>Rework Instructions</th>
-                <th>Linked Job Card</th>
-                <th style={{ textAlign: "right" }}>QC Audit</th>
-              </tr>
+              {filterVerdict === "awaiting" ? (
+                <tr>
+                  <th>Handset Model & Brand</th>
+                  <th>IMEI / Serial</th>
+                  <th>Workshop Status</th>
+                  <th>Intake Condition</th>
+                  <th>Storage & Color</th>
+                  <th>Device ID</th>
+                  <th style={{ textAlign: "right" }}>Action</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Audit Timestamp</th>
+                  <th>Device ID</th>
+                  <th>QC Verdict</th>
+                  <th>Failure Reason</th>
+                  <th>Rework Instructions</th>
+                  <th>Linked Job Card</th>
+                  <th style={{ textAlign: "right" }}>QC Audit</th>
+                </tr>
+              )}
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={7} className="empty">Loading QC records…</td>
                 </tr>
-              ) : qcList.length === 0 ? (
+              ) : filterVerdict === "awaiting" ? (
+                qcEligibleDevices.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="empty">No devices currently awaiting QC inspection.</td>
+                  </tr>
+                ) : (
+                  qcEligibleDevices.map((d) => (
+                    <tr key={d.id}>
+                      <td><b>{d.brand} {d.model}</b></td>
+                      <td><code>{d.imei || "—"}</code></td>
+                      <td><span className="tag">{formatDeviceStatus(d.status)}</span></td>
+                      <td>{d.condition_grade ? `Grade ${d.condition_grade}` : "Standard Intake"}</td>
+                      <td>{d.storage_capacity ? `${d.storage_capacity} • ${d.color || "Default"}` : "—"}</td>
+                      <td><code>#{d.id.slice(0, 8)}</code></td>
+                      <td style={{ textAlign: "right" }}>
+                        <button
+                          type="button"
+                          className="primary-btn"
+                          style={{ padding: "4px 10px", fontSize: "11px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                          onClick={() => {
+                            setSelectedDeviceId(d.id);
+                            setShowModal(true);
+                          }}
+                        >
+                          <ShieldCheck size={12} /> Audit Handset
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )
+              ) : filteredQcList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="empty">No QC checks performed yet. Click "Perform QC Verification" to start.</td>
+                  <td colSpan={7} className="empty">
+                    {filterVerdict === "passed"
+                      ? "No QC passed records found for current filter."
+                      : filterVerdict === "rework"
+                      ? "No rework required records found for current filter."
+                      : "No QC checks performed yet. Click \"Perform QC Verification\" to start."}
+                  </td>
                 </tr>
               ) : (
-                qcList.map((q) => (
+                filteredQcList.map((q) => (
                   <tr key={q.id}>
                     <td>{new Date(q.checked_at).toLocaleString("en-IN")}</td>
                     <td><code>{q.device_id.slice(0, 13)}...</code></td>
@@ -285,12 +375,52 @@ export default function QualityControlPage() {
 
         {/* Mobile Touch Cards */}
         <div className="mobile-qc-cards">
-          {qcList.length === 0 ? (
+          {filterVerdict === "awaiting" ? (
+            qcEligibleDevices.length === 0 ? (
+              <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
+                No devices currently awaiting QC inspection.
+              </div>
+            ) : (
+              qcEligibleDevices.map((d) => (
+                <div key={d.id} className="mobile-qc-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <b style={{ fontSize: "13px" }}>{d.brand} {d.model}</b>
+                      <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                        IMEI: {d.imei || "—"}
+                      </div>
+                    </div>
+                    <span className="tag">{formatDeviceStatus(d.status)}</span>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#475569", marginTop: "6px" }}>
+                    {d.storage_capacity} {d.color}
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "8px" }}>
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      style={{ padding: "6px 12px", fontSize: "11.5px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                      onClick={() => {
+                        setSelectedDeviceId(d.id);
+                        setShowModal(true);
+                      }}
+                    >
+                      <ShieldCheck size={13} /> Audit Handset
+                    </button>
+                  </div>
+                </div>
+              ))
+            )
+          ) : filteredQcList.length === 0 ? (
             <div style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>
-              No QC checks performed yet. Tap "Perform QC Verification" to start.
+              {filterVerdict === "passed"
+                ? "No QC passed records found."
+                : filterVerdict === "rework"
+                ? "No rework required records found."
+                : "No QC checks performed yet. Tap \"Perform QC Verification\" to start."}
             </div>
           ) : (
-            qcList.map((q) => (
+            filteredQcList.map((q) => (
               <div key={q.id} className="mobile-qc-card">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>

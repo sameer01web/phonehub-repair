@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Users,
   UserPlus,
@@ -51,6 +51,23 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<Profile[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+
+  const filteredStaff = useMemo(() => {
+    if (roleFilter === "admin") {
+      return staff.filter((s) => s.role === "owner" || s.role === "workshop_manager");
+    }
+    if (roleFilter === "technician") {
+      return staff.filter((s) => s.role === "technician");
+    }
+    if (roleFilter === "inventory") {
+      return staff.filter((s) => s.role === "inventory" || s.role === "procurement");
+    }
+    if (roleFilter === "qc") {
+      return staff.filter((s) => s.role === "qc_inspector");
+    }
+    return staff;
+  }, [staff, roleFilter]);
 
   // Add Staff Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -350,30 +367,50 @@ export default function StaffPage() {
         </div>
       )}
 
-      {/* Role Counts Summary */}
+      {/* Role Counts Summary (Clickable Interactive Cards) */}
       <div className="responsive-grid-4" style={{ marginBottom: "22px" }}>
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${roleFilter === "admin" ? "active" : ""}`}
+          onClick={() => setRoleFilter(roleFilter === "admin" ? "all" : "admin")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter Admins & Workshop Owners"
+        >
           <div className="stat-icon Blue"><Shield size={18} /></div>
           <div className="stat-label">Admins & Owners</div>
           <div className="stat-value">{staff.filter((s) => s.role === "owner" || s.role === "workshop_manager").length}</div>
           <div className="stat-foot">Full administrative controls</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${roleFilter === "technician" ? "active" : ""}`}
+          onClick={() => setRoleFilter(roleFilter === "technician" ? "all" : "technician")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter Bench Technicians"
+        >
           <div className="stat-icon Orange"><Wrench size={18} /></div>
           <div className="stat-label">Bench Technicians</div>
           <div className="stat-value">{staff.filter((s) => s.role === "technician").length}</div>
           <div className="stat-foot">Available for job card assignment</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${roleFilter === "inventory" ? "active" : ""}`}
+          onClick={() => setRoleFilter(roleFilter === "inventory" ? "all" : "inventory")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter Inventory & Procurement staff"
+        >
           <div className="stat-icon Green"><Layers size={18} /></div>
           <div className="stat-label">Inventory & Procurement</div>
           <div className="stat-value">{staff.filter((s) => s.role === "inventory" || s.role === "procurement").length}</div>
           <div className="stat-foot">FIFO parts & goods receipts</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${roleFilter === "qc" ? "active" : ""}`}
+          onClick={() => setRoleFilter(roleFilter === "qc" ? "all" : "qc")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter QC Inspectors"
+        >
           <div className="stat-icon Purple"><CheckSquare size={18} /></div>
           <div className="stat-label">QC Inspectors</div>
           <div className="stat-value">{staff.filter((s) => s.role === "qc_inspector").length}</div>
@@ -383,12 +420,31 @@ export default function StaffPage() {
 
       {/* Staff Roster Table */}
       <div className="panel" style={{ marginBottom: "22px" }}>
-        <div className="section-head">
+        <div className="section-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
           <div>
-            <h2>Registered Workshop Staff & Technicians</h2>
+            <h2>
+              Registered Workshop Staff & Technicians
+              {roleFilter !== "all" && (
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "#0176d3", marginLeft: "10px" }}>
+                  ({roleFilter === "admin" ? "Admins & Owners" : roleFilter === "technician" ? "Bench Technicians" : roleFilter === "inventory" ? "Inventory & Procurement" : "QC Inspectors"})
+                </span>
+              )}
+            </h2>
             <p>Active workshop accounts synchronized with Supabase Profiles</p>
           </div>
-          <Users size={18} className="muted" />
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {roleFilter !== "all" && (
+              <button
+                type="button"
+                className="secondary-btn"
+                style={{ padding: "4px 10px", fontSize: "11px" }}
+                onClick={() => setRoleFilter("all")}
+              >
+                Reset Filter (Show All)
+              </button>
+            )}
+            <Users size={18} className="muted" />
+          </div>
         </div>
 
         {/* Desktop Table */}
@@ -412,14 +468,16 @@ export default function StaffPage() {
                     Loading workshop staff profiles...
                   </td>
                 </tr>
-              ) : staff.length === 0 ? (
+              ) : filteredStaff.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: "center", padding: "34px", color: "#64748b" }}>
-                    No staff profiles registered yet.
+                    {roleFilter !== "all"
+                      ? "No staff members match the selected role filter. Click the card again or 'Reset Filter' to see all."
+                      : "No staff profiles registered yet."}
                   </td>
                 </tr>
               ) : (
-                staff.map((member) => {
+                filteredStaff.map((member) => {
                   const roleConfig = ROLES.find((r) => r.value === member.role) || {
                     label: member.role,
                     color: "#64748b",
@@ -643,12 +701,14 @@ export default function StaffPage() {
             <div style={{ textAlign: "center", padding: "30px", color: "#64748b" }}>
               Loading workshop staff profiles...
             </div>
-          ) : staff.length === 0 ? (
+          ) : filteredStaff.length === 0 ? (
             <div style={{ textAlign: "center", padding: "34px", color: "#64748b", background: "#f8fafc", borderRadius: "8px" }}>
-              No staff profiles registered yet.
+              {roleFilter !== "all"
+                ? "No staff members match the selected role filter."
+                : "No staff profiles registered yet."}
             </div>
           ) : (
-            staff.map((member) => {
+            filteredStaff.map((member) => {
               const roleConfig = ROLES.find((r) => r.value === member.role) || {
                 label: member.role,
                 color: "#64748b",

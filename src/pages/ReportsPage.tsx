@@ -281,9 +281,14 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Primary KPI Overview Cards (All in 1 Row) */}
+      {/* Primary KPI Overview Cards (Clickable Interactive Cards) */}
       <div className="responsive-grid-5" style={{ gap: "12px", marginBottom: "20px" }}>
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "operations" ? "active" : ""}`}
+          onClick={() => setActiveTab("operations")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view Repair Operations & Pipeline"
+        >
           <div className="stat-icon Blue"><Wrench size={20} /></div>
           <div className="stat-label">Total Repair Jobs</div>
           <div className="stat-value" style={{ color: "#0176d3" }}>
@@ -292,7 +297,12 @@ export default function ReportsPage() {
           <div className="stat-foot">In selected period ({jobs.length} lifetime)</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "operations" ? "active" : ""}`}
+          onClick={() => setActiveTab("operations")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view Completed Repairs in Operations"
+        >
           <div className="stat-icon Green"><CheckCircle2 size={20} /></div>
           <div className="stat-label">Completed Repairs</div>
           <div className="stat-value" style={{ color: "#15945b" }}>
@@ -301,7 +311,12 @@ export default function ReportsPage() {
           <div className="stat-foot">{shopMetrics.completionRate}% completion rate</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "operations" ? "active" : ""}`}
+          onClick={() => setActiveTab("operations")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view Active / In Progress repairs"
+        >
           <div className="stat-icon Orange"><Clock size={20} /></div>
           <div className="stat-label">Active / In Progress</div>
           <div className="stat-value" style={{ color: "#e68a2e" }}>
@@ -310,7 +325,12 @@ export default function ReportsPage() {
           <div className="stat-foot">{shopMetrics.pending} pending / waiting parts</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "qc" ? "active" : ""}`}
+          onClick={() => setActiveTab("qc")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view Quality Control & Rework Audit"
+        >
           <div className="stat-icon Purple"><ShieldCheck size={20} /></div>
           <div className="stat-label">First-Time QC Yield</div>
           <div className="stat-value" style={{ color: "#7955c7" }}>
@@ -319,7 +339,12 @@ export default function ReportsPage() {
           <div className="stat-foot">{passedQcCount} passed, {failedQcCount} rework audits</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "inventory" ? "active" : ""}`}
+          onClick={() => setActiveTab("inventory")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view Spare Parts FIFO & Consumption"
+        >
           <div className="stat-icon Blue"><Layers size={20} /></div>
           <div className="stat-label">FIFO Stock Valuation</div>
           <div className="stat-value">

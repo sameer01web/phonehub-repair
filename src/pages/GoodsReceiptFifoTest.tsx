@@ -267,9 +267,14 @@ export default function GoodsReceiptFifoTest() {
         </div>
       )}
 
-      {/* 4 KPI METRIC CARDS */}
+      {/* 4 KPI METRIC CARDS (Clickable Interactive Cards) */}
       <div className="responsive-grid-4" style={{ marginBottom: "22px" }}>
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "all" ? "active" : ""}`}
+          onClick={() => setActiveTab("all")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view all goods receipts"
+        >
           <div className="stat-icon Blue">
             <PackageCheck size={18} />
           </div>
@@ -278,7 +283,12 @@ export default function GoodsReceiptFifoTest() {
           <div className="stat-foot">Consignments recorded</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "pending" ? "active" : ""}`}
+          onClick={() => setActiveTab(activeTab === "pending" ? "all" : "pending")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter pending goods inwarding"
+        >
           <div className="stat-icon Orange">
             <Clock size={18} />
           </div>
@@ -287,7 +297,12 @@ export default function GoodsReceiptFifoTest() {
           <div className="stat-foot">Awaiting FIFO batch creation</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "processed" ? "active" : ""}`}
+          onClick={() => setActiveTab(activeTab === "processed" ? "all" : "processed")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter inwarded FIFO receipts"
+        >
           <div className="stat-icon Green">
             <Layers size={18} />
           </div>
@@ -296,7 +311,12 @@ export default function GoodsReceiptFifoTest() {
           <div className="stat-foot">Active in inventory ledger</div>
         </div>
 
-        <div className="stat-card">
+        <div
+          className={`stat-card clickable ${activeTab === "all" ? "active" : ""}`}
+          onClick={() => setActiveTab("all")}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view receipts from all active suppliers"
+        >
           <div className="stat-icon Purple">
             <Building2 size={18} />
           </div>
