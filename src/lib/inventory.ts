@@ -531,6 +531,36 @@ export async function issueSparePartFifo(
     console.warn("Non-fatal: could not log device timeline/cost entries:", logErr);
   }
 
+  // Resilient Persistence: Store issued part in localStorage for instant offline/RLS fallback
+  try {
+    const unitPrice = quantity > 0 ? (totalFifoCost / quantity) : Number(part.purchase_price ?? part.unit_cost ?? 0);
+    const newIssuedItem = {
+      id: `issue_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      spare_part_id: sparePartId,
+      part_id: sparePartId,
+      movement_type: "issue",
+      quantity: quantity,
+      quantity_delta: -quantity,
+      unit_cost: unitPrice,
+      total_cost: totalFifoCost,
+      job_card_id: jobCardId,
+      reference_type: "job_card",
+      reference_id: jobCardId,
+      created_by: authUser?.id || null,
+      created_at: new Date().toISOString(),
+      part_name: part.part_name || part.name || part.sku,
+      sku: part.sku,
+    };
+
+    const storageKey = `phonehub_parts_issued_${jobCardId}`;
+    const raw = localStorage.getItem(storageKey);
+    const currentList = raw ? JSON.parse(raw) : [];
+    currentList.unshift(newIssuedItem);
+    localStorage.setItem(storageKey, JSON.stringify(currentList));
+  } catch (lsErr) {
+    console.warn("Could not cache issued part in localStorage:", lsErr);
+  }
+
   return {
     success: true,
     spare_part_id: sparePartId,

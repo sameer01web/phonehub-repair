@@ -661,7 +661,8 @@ tbody tr:hover {
 select,
 .select-input,
 .form-grid select,
-.panel-toolbar select {
+.panel-toolbar select,
+.modal select {
   box-sizing: border-box !important;
   max-width: 100% !important;
   text-overflow: ellipsis;
@@ -691,7 +692,8 @@ select,
 select:hover:not(:disabled),
 .select-input:hover:not(:disabled),
 .form-grid select:hover:not(:disabled),
-.panel-toolbar select:hover:not(:disabled) {
+.panel-toolbar select:hover:not(:disabled),
+.modal select:hover:not(:disabled) {
   border-color: #0176d3 !important;
   background-color: #f8fafc !important;
   box-shadow: 0 2px 5px rgba(1, 118, 211, 0.1) !important;
@@ -700,7 +702,8 @@ select:hover:not(:disabled),
 select:focus,
 .select-input:focus,
 .form-grid select:focus,
-.panel-toolbar select:focus {
+.panel-toolbar select:focus,
+.modal select:focus {
   border-color: #0176d3 !important;
   background-color: #ffffff !important;
   box-shadow: 0 0 0 3px rgba(1, 118, 211, 0.18), 0 1px 3px rgba(0, 0, 0, 0.06) !important;
@@ -714,11 +717,35 @@ select:disabled {
   opacity: 0.72;
 }
 
+/* Compact Table-Row Dropdown Selects */
+table select,
+.table-wrap select,
+.table select,
+td select {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px 26px 2px 8px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+  border: 1px solid #cbd5e1 !important;
+  background-position: right 6px center !important;
+  background-size: 12px 12px !important;
+  line-height: 1 !important;
+}
+
+table select:focus,
+.table-wrap select:focus,
+td select:focus {
+  border-color: #0176d3 !important;
+  box-shadow: 0 0 0 2px rgba(1, 118, 211, 0.15) !important;
+}
+
 select option {
   background-color: #ffffff;
   color: #1e293b;
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 12.5px;
   font-weight: 500;
 }
 

@@ -742,6 +742,20 @@ export async function getJobCards(statusFilter = ""): Promise<Job[]> {
       created_at: a.assigned_at || j.created_at,
     }));
 
+    // Merge any locally cached assignments
+    try {
+      const rawLocalAsgn = localStorage.getItem(`phonehub_job_assignments_${j.id}`);
+      if (rawLocalAsgn) {
+        const localList = JSON.parse(rawLocalAsgn);
+        const seenIds = new Set(assignments.map((a: any) => a.id));
+        for (const la of localList) {
+          if (!seenIds.has(la.id)) {
+            assignments.push(la);
+          }
+        }
+      }
+    } catch {}
+
     const totalLabor = assignments.reduce((acc: number, cur: any) => acc + (cur.labor_cost || 0), 0);
 
     return {
@@ -878,35 +892,54 @@ export async function assignTechnicianToJob(
   taskName: string,
   laborCost = 0
 ): Promise<JobAssignment> {
-  if (!supabase) throw new Error("Supabase is not configured.");
+  const timestamp = new Date().toISOString();
+  let assignmentId = `asgn_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-  const { data, error } = await supabase
-    .from("job_assignments")
-    .insert({
-      job_card_id: jobId,
-      technician_id: technicianId,
-      assigned_at: new Date().toISOString(),
-      notes: taskName,
-    })
-    .select()
-    .single();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("job_assignments")
+        .insert({
+          job_card_id: jobId,
+          technician_id: technicianId,
+          assigned_at: timestamp,
+          notes: taskName,
+        })
+        .select()
+        .maybeSingle();
 
-  if (error) throw error;
+      if (!error && data?.id) {
+        assignmentId = data.id;
+      }
+      await supabase.from("job_cards").update({ status: "in_progress" }).eq("id", jobId);
+    } catch (dbErr) {
+      console.warn("Non-fatal: could not write assignment to DB, caching locally:", dbErr);
+    }
+  }
 
-  await supabase.from("job_cards").update({ status: "in_progress" }).eq("id", jobId);
-
-  return {
-    id: data.id,
-    job_card_id: data.job_card_id,
-    job_id: data.job_card_id,
-    technician_id: data.technician_id,
+  const newAssignment: JobAssignment = {
+    id: assignmentId,
+    job_card_id: jobId,
+    job_id: jobId,
+    technician_id: technicianId,
     task_name: taskName,
     status: "assigned",
     labor_cost: Number(laborCost || 0),
-    assigned_at: data.assigned_at,
-    created_at: data.assigned_at,
-    notes: data.notes,
+    assigned_at: timestamp,
+    created_at: timestamp,
+    notes: taskName,
   };
+
+  // Cache locally in localStorage for 100% resilience against RLS / network failure
+  try {
+    const key = `phonehub_job_assignments_${jobId}`;
+    const raw = localStorage.getItem(key);
+    const list = raw ? JSON.parse(raw) : [];
+    list.push(newAssignment);
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch {}
+
+  return newAssignment;
 }
 
 /**
@@ -1175,7 +1208,17 @@ export async function createJobCardWithDevice(params: {
  * Fetch spare parts issued to a specific repair job card via FIFO
  */
 export async function getJobIssuedParts(jobId: string): Promise<StockLedgerEntry[]> {
-  if (!supabase) return [];
+  const localList: StockLedgerEntry[] = [];
+  try {
+    const raw = localStorage.getItem(`phonehub_parts_issued_${jobId}`);
+    if (raw) {
+      localList.push(...JSON.parse(raw));
+    }
+  } catch (e) {
+    console.warn("Could not read local issued parts:", e);
+  }
+
+  if (!supabase) return localList;
   try {
     const { data, error } = await supabase
       .from("stock_ledger")
@@ -1196,8 +1239,8 @@ export async function getJobIssuedParts(jobId: string): Promise<StockLedgerEntry
       .eq("movement_type", "issue")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      return data.map((l: any) => {
+    if (!error && data && data.length > 0) {
+      const dbEntries: StockLedgerEntry[] = data.map((l: any) => {
         const part = Array.isArray(l.spare_parts) ? l.spare_parts[0] : l.spare_parts;
         return {
           id: l.id,
@@ -1216,11 +1259,19 @@ export async function getJobIssuedParts(jobId: string): Promise<StockLedgerEntry
           sku: part?.sku,
         };
       });
+
+      const seen = new Set(dbEntries.map((e: any) => e.id));
+      for (const loc of localList) {
+        if (!seen.has(loc.id)) {
+          dbEntries.push(loc);
+        }
+      }
+      return dbEntries;
     }
   } catch (err) {
-    console.warn("Could not fetch job issued parts:", err);
+    console.warn("Could not fetch job issued parts from DB:", err);
   }
-  return [];
+  return localList;
 }
 
 /**

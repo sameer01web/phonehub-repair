@@ -158,7 +158,7 @@ export default function JobCardsPage() {
     setColor("Black");
     setStorage("128GB");
     setCondition("Good");
-    setExistingDeviceId(devices[0]?.id || "");
+    setExistingDeviceId("");
     setTitle("");
     setComplaint("");
     setDiagnosis("");
@@ -278,9 +278,11 @@ export default function JobCardsPage() {
       setSuccess(`Issued ${qty} unit(s) of ${selectedPart?.name || 'part'} via FIFO. ₹${Number(res.total_fifo_cost || 0).toLocaleString("en-IN")} allocated to Job #${selectedJob.job_number}.`);
       setTimeout(() => setSuccess(null), 5000);
       await loadData();
+      const partsIssued = await getJobIssuedParts(selectedJob.id);
+      setViewIssuedParts(partsIssued);
       if (viewJob && viewJob.id === selectedJob.id) {
-        const partsIssued = await getJobIssuedParts(selectedJob.id);
-        setViewIssuedParts(partsIssued);
+        const partsCost = partsIssued.reduce((sum, p) => sum + (Number(p.quantity || 0) * Number(p.unit_cost || 0)), 0);
+        setViewJob((prev) => prev ? { ...prev, actual_parts_cost: partsCost } : null);
       }
     } catch (err: any) {
       setError(err?.message || "Failed to issue spare part");
@@ -1290,46 +1292,41 @@ export default function JobCardsPage() {
                 <div style={{ marginBottom: "14px" }}>
                   <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "6px" }}>
                     Select Phone from Inventory:
-                    <div style={{ position: "relative", width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
-                      <select
-                        value={existingDeviceId}
-                        onChange={(e) => setExistingDeviceId(e.target.value)}
-                        style={{
-                          width: "100%",
-                          maxWidth: "100%",
-                          height: "40px",
-                          border: "1.5px solid #cbd5e1",
-                          borderRadius: "8px",
-                          padding: "0 34px 0 12px",
-                          fontSize: "12.5px",
-                          color: "#0f172a",
-                          background: "#ffffff",
-                          outline: "none",
-                          fontWeight: 600,
-                          boxSizing: "border-box",
-                          appearance: "none",
-                          WebkitAppearance: "none",
-                          cursor: "pointer",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                        }}
-                      >
-                        {devices.map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)})
-                          </option>
-                        ))}
-                      </select>
-                      <div style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }}>
-                        <ChevronDown size={16} />
-                      </div>
-                    </div>
+                    <select
+                      value={existingDeviceId}
+                      onChange={(e) => setExistingDeviceId(e.target.value)}
+                      style={{
+                        width: "100%",
+                        maxWidth: "100%",
+                        height: "40px",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "8px",
+                        padding: "0 34px 0 12px",
+                        fontSize: "12.5px",
+                        color: existingDeviceId ? "#0f172a" : "#64748b",
+                        background: "#ffffff",
+                        outline: "none",
+                        fontWeight: 600,
+                        boxSizing: "border-box",
+                        cursor: "pointer",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <option value="">-- Choose Phone from Inventory --</option>
+                      {devices.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)})
+                        </option>
+                      ))}
+                    </select>
                   </label>
 
                   {/* Selected Device Preview Card */}
                   {(() => {
-                    const selectedDev = devices.find((d) => d.id === existingDeviceId) || devices[0];
+                    if (!existingDeviceId) return null;
+                    const selectedDev = devices.find((d) => d.id === existingDeviceId);
                     if (!selectedDev) return null;
                     return (
                       <div
@@ -1382,12 +1379,22 @@ export default function JobCardsPage() {
                 </label>
 
                 <div className="form-grid">
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
                     Repair Priority
                     <select
                       value={priority}
                       onChange={(e) => setPriority(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", background: "#fff", width: "100%", boxSizing: "border-box" }}
+                      style={{
+                        height: "38px",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "8px",
+                        padding: "0 34px 0 10px",
+                        fontSize: "12.5px",
+                        background: "#fff",
+                        width: "100%",
+                        boxSizing: "border-box",
+                        cursor: "pointer",
+                      }}
                     >
                       <option value="Normal">Normal</option>
                       <option value="Urgent">Urgent (Express)</option>
@@ -1396,72 +1403,34 @@ export default function JobCardsPage() {
                     </select>
                   </label>
 
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
-                    Estimated Repair Cost (₹)
-                    <input
-                      type="number"
-                      min="0"
-                      value={estimatedCost}
-                      onChange={(e) => setEstimatedCost(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", width: "100%", boxSizing: "border-box" }}
-                    />
-                  </label>
-
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
                     Assign Initial Technician
-                    <div style={{ position: "relative", width: "100%", boxSizing: "border-box" }}>
-                      <select
-                        value={initialTechId}
-                        onChange={(e) => setInitialTechId(e.target.value)}
-                        style={{
-                          width: "100%",
-                          height: "38px",
-                          border: "1.5px solid #cbd5e1",
-                          borderRadius: "8px",
-                          padding: "0 30px 0 10px",
-                          fontSize: "12px",
-                          background: "#fff",
-                          boxSizing: "border-box",
-                          appearance: "none",
-                          WebkitAppearance: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <option value="">-- Unassigned (Assign Later) --</option>
-                        {staffList
-                          .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
-                          .map((tech) => (
-                            <option key={tech.id} value={tech.id}>
-                              {tech.full_name || "Staff"} ({tech.role?.replace(/_/g, " ")})
-                            </option>
-                          ))}
-                      </select>
-                      <div style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#64748b" }}>
-                        <ChevronDown size={14} />
-                      </div>
-                    </div>
-                  </label>
-
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
-                    Initial Bench Task
-                    <input
-                      value={initialTask}
-                      onChange={(e) => setInitialTask(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", width: "100%", boxSizing: "border-box" }}
-                    />
+                    <select
+                      value={initialTechId}
+                      onChange={(e) => setInitialTechId(e.target.value)}
+                      style={{
+                        width: "100%",
+                        height: "38px",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "8px",
+                        padding: "0 34px 0 10px",
+                        fontSize: "12px",
+                        background: "#fff",
+                        boxSizing: "border-box",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="">-- Unassigned (Assign Later) --</option>
+                      {staffList
+                        .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
+                        .map((tech) => (
+                          <option key={tech.id} value={tech.id}>
+                            {tech.full_name || "Staff"} ({tech.role?.replace(/_/g, " ")})
+                          </option>
+                        ))}
+                    </select>
                   </label>
                 </div>
-
-                <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
-                  Internal Notes & Repair Precautions
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. Customer reported power button sticky. Backup recommended before firmware."
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    style={{ border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "8px 10px", font: "inherit", fontSize: "12px", width: "100%", boxSizing: "border-box" }}
-                  />
-                </label>
               </div>
             </div>
 

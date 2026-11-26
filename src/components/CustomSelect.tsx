@@ -199,7 +199,7 @@ export default function CustomSelect({
             boxShadow:
               "0 10px 25px -5px rgba(16, 36, 61, 0.15), 0 8px 10px -6px rgba(16, 36, 61, 0.08)",
             padding: "5px",
-            zIndex: 1000,
+            zIndex: 9999,
             maxHeight: "260px",
             overflowY: "auto",
             animation: "fadeInSelect 0.15s cubic-bezier(0, 0, 0.2, 1)",
