@@ -1355,7 +1355,7 @@ export default function JobCardsPage() {
         const estCost = requestedQty * Number(selectedPart?.unit_cost || selectedPart?.purchase_price || 0);
 
         return (
-          <div className="modal-backdrop">
+          <div className="modal-backdrop" style={{ zIndex: 120 }}>
             <form
               className="modal"
               onSubmit={handleIssuePart}
@@ -1666,14 +1666,56 @@ export default function JobCardsPage() {
 
             {/* Spare Parts Issued via FIFO */}
             <div style={{ marginBottom: "16px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#152b49", marginBottom: "8px" }}>
-                Spare Parts Consumed via FIFO ({viewIssuedParts.length})
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#152b49" }}>
+                  Spare Parts Consumed via FIFO ({viewIssuedParts.length})
+                </div>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  style={{
+                    padding: "4px 10px",
+                    fontSize: "11px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    color: "#0176d3",
+                    borderColor: "#b9dcfa",
+                    background: "#f0f7ff",
+                    fontWeight: 600,
+                  }}
+                  onClick={() => {
+                    setSelectedJob(viewJob);
+                    const availablePart = parts.find((p) => (p.quantity || p.current_stock || 0) > 0) || parts[0];
+                    setPartId(availablePart?.id || "");
+                    setPartQty("1");
+                    setShowIssuePart(true);
+                  }}
+                >
+                  <Wrench size={12} /> + Issue Spare Part
+                </button>
               </div>
               {loadingParts ? (
                 <div className="empty">Loading parts issued…</div>
               ) : viewIssuedParts.length === 0 ? (
-                <div className="empty" style={{ padding: "14px" }}>
-                  No spare parts issued to this repair job yet.
+                <div className="empty" style={{ padding: "16px", textAlign: "center" }}>
+                  <p style={{ margin: "0 0 10px 0", color: "#64748b", fontSize: "12px" }}>
+                    No spare parts issued to this repair job yet.
+                  </p>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    style={{ padding: "6px 14px", fontSize: "11.5px", display: "inline-flex", alignItems: "center", gap: "6px", margin: "0 auto" }}
+                    onClick={() => {
+                      setSelectedJob(viewJob);
+                      const availablePart = parts.find((p) => (p.quantity || p.current_stock || 0) > 0) || parts[0];
+                      setPartId(availablePart?.id || "");
+                      setPartQty("1");
+                      setShowIssuePart(true);
+                    }}
+                  >
+                    <Wrench size={13} /> Issue Spare Part (FIFO Stock Deduction)
+                  </button>
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: "6px" }}>

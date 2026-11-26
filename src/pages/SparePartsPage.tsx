@@ -886,6 +886,10 @@ export default function SparePartsPage() {
               <button type="button" className="icon-btn" onClick={() => setShowAdjust(false)}>×</button>
             </div>
 
+            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "6px", padding: "10px 12px", fontSize: "11.5px", color: "#1e40af", marginBottom: "14px", lineHeight: "1.5" }}>
+              <b>💡 Customer Phone Repair Job ke liye Note:</b> Agar aap kisi customer phone (Job Card) me spare part laga rahe hain, toh yahan se stock adjust karne ki zaroorat nahi hai. <b>Repair Job Cards</b> page par jakar phone ke aage <b>"+ Part"</b> button par click karein, jisse FIFO cost seedha us phone ki Job Card aur profit calculation me jud jaye.
+            </div>
+
             <div className="form-grid">
               <label style={{ gridColumn: "1 / -1" }}>
                 Spare Part *
