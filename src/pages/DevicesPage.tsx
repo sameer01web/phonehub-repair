@@ -136,7 +136,7 @@ export default function DevicesPage() {
     setError(null);
     try {
       const [devList, shipList] = await Promise.all([
-        getDevices(search, statusFilter),
+        getDevices(),
         getShipments(),
       ]);
       setDevices(devList);
@@ -150,11 +150,13 @@ export default function DevicesPage() {
 
   useEffect(() => {
     loadData();
-  }, [statusFilter]);
+  }, []);
 
   // Filtered devices across storage, condition, search
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {
+      // Status filter
+      if (statusFilter !== "all" && normalizeDeviceStatus(d.status) !== statusFilter) return false;
       // Storage filter
       if (storageFilter !== "all" && d.storage_capacity !== storageFilter) return false;
       // Condition filter
@@ -173,7 +175,7 @@ export default function DevicesPage() {
       }
       return true;
     });
-  }, [devices, storageFilter, conditionFilter, search]);
+  }, [devices, statusFilter, storageFilter, conditionFilter, search]);
 
   // Real-time stock counts
   const totalStock = devices.length;
@@ -501,9 +503,14 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
       {error && <div className="notice error">{error}</div>}
       {successMsg && <div className="notice success">{successMsg}</div>}
 
-      {/* Stock Summary Metrics Bar */}
+      {/* Stock Summary Metrics Bar (Interactive / Clickable Filter Cards) */}
       <div className="stats-grid" style={{ marginBottom: "16px" }}>
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter("all")}
+          className={`stat-card clickable ${statusFilter === "all" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view all phones in stock"
+        >
           <div className="stat-icon Blue"><Smartphone size={20} /></div>
           <div>
             <div className="stat-label">Total Phones in Stock</div>
@@ -512,7 +519,12 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "received" ? "all" : "received")}
+          className={`stat-card clickable ${statusFilter === "received" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter received intake phones"
+        >
           <div className="stat-icon Orange"><Calendar size={20} /></div>
           <div>
             <div className="stat-label">Intake Pending / Received</div>
@@ -521,7 +533,12 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "in_repair" ? "all" : "in_repair")}
+          className={`stat-card clickable ${statusFilter === "in_repair" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter phones in active repair"
+        >
           <div className="stat-icon Orange"><Layers size={20} /></div>
           <div>
             <div className="stat-label">In Active Repair</div>
@@ -530,7 +547,12 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "ready_for_sale" ? "all" : "ready_for_sale")}
+          className={`stat-card clickable ${statusFilter === "ready_for_sale" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter phones ready for handover"
+        >
           <div className="stat-icon Green"><CheckCircle2 size={20} /></div>
           <div>
             <div className="stat-label">Ready for Handover</div>

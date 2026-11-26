@@ -123,7 +123,7 @@ export default function JobCardsPage() {
     setError(null);
     try {
       const [jobList, devList, partList, staff] = await Promise.all([
-        getJobCards(statusFilter),
+        getJobCards(),
         getDevices(),
         getSpareParts(),
         getStaffProfiles(),
@@ -146,7 +146,7 @@ export default function JobCardsPage() {
 
   useEffect(() => {
     loadData();
-  }, [statusFilter]);
+  }, []);
 
   async function handleOpenAddJob() {
     setShowAddJob(true);
@@ -369,6 +369,18 @@ export default function JobCardsPage() {
   // Filter jobs across Search, Status, Priority, Technician
   const filteredJobs = useMemo(() => {
     return jobs.filter((j) => {
+      // Status filter
+      if (statusFilter !== "all") {
+        if (statusFilter === "in_progress") {
+          if (j.status !== "in_progress" && j.status !== "assigned") return false;
+        } else if (statusFilter === "completed") {
+          if (j.status !== "completed" && j.status !== "delivered") return false;
+        } else if (statusFilter === "qc_pending") {
+          if (j.status !== "qc_pending" && j.status !== "qc_testing") return false;
+        } else if (j.status !== statusFilter) {
+          return false;
+        }
+      }
       // Priority filter
       if (priorityFilter !== "all" && j.priority?.toLowerCase() !== priorityFilter.toLowerCase()) {
         return false;
@@ -400,14 +412,14 @@ export default function JobCardsPage() {
       }
       return true;
     });
-  }, [jobs, search, priorityFilter, techFilter]);
+  }, [jobs, statusFilter, search, priorityFilter, techFilter]);
 
   // Overall Repair Metrics
   const totalJobs = jobs.length;
   const receivedCount = jobs.filter((j) => j.status === "received").length;
   const inProgressCount = jobs.filter((j) => j.status === "in_progress" || j.status === "assigned").length;
   const qcPendingCount = jobs.filter((j) => j.status === "qc_pending").length;
-  const completedCount = jobs.filter((j) => j.status === "completed").length;
+  const completedCount = jobs.filter((j) => j.status === "completed" || j.status === "delivered").length;
 
   return (
     <>
@@ -433,9 +445,14 @@ export default function JobCardsPage() {
         </div>
       )}
 
-      {/* Repair Workflow Pulse Stats */}
+      {/* Repair Workflow Pulse Stats (Interactive / Clickable Filter Cards) */}
       <div className="responsive-grid-5" style={{ marginBottom: "16px" }}>
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter("all")}
+          className={`stat-card clickable ${statusFilter === "all" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to view all repair jobs"
+        >
           <div className="stat-icon Blue"><ClipboardList size={20} /></div>
           <div>
             <div className="stat-label">Total Repair Jobs</div>
@@ -444,7 +461,12 @@ export default function JobCardsPage() {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "received" ? "all" : "received")}
+          className={`stat-card clickable ${statusFilter === "received" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter received intake tickets awaiting assignment"
+        >
           <div className="stat-icon Blue"><Clock size={20} /></div>
           <div>
             <div className="stat-label">Received / Intake</div>
@@ -453,7 +475,12 @@ export default function JobCardsPage() {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "in_progress" ? "all" : "in_progress")}
+          className={`stat-card clickable ${statusFilter === "in_progress" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter active repairs on technician bench"
+        >
           <div className="stat-icon Orange"><Wrench size={20} /></div>
           <div>
             <div className="stat-label">Under Active Repair</div>
@@ -462,7 +489,12 @@ export default function JobCardsPage() {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "qc_pending" ? "all" : "qc_pending")}
+          className={`stat-card clickable ${statusFilter === "qc_pending" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter jobs pending QC verification"
+        >
           <div className="stat-icon Orange"><ShieldCheck size={20} /></div>
           <div>
             <div className="stat-label">QC Testing Gate</div>
@@ -471,7 +503,12 @@ export default function JobCardsPage() {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div
+          onClick={() => setStatusFilter(statusFilter === "completed" ? "all" : "completed")}
+          className={`stat-card clickable ${statusFilter === "completed" ? "active" : ""}`}
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Click to filter completed and delivered repairs"
+        >
           <div className="stat-icon Green"><CheckCircle2 size={20} /></div>
           <div>
             <div className="stat-label">Completed & Delivered</div>
