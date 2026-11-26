@@ -23,6 +23,7 @@ import {
   Check,
   Tag,
   Copy,
+  Users,
 } from "lucide-react";
 import {
   getJobCards,
@@ -856,48 +857,49 @@ export default function JobCardsPage() {
 
               return (
                 <div key={j.id} className="mobile-job-card">
-                  {/* Header: Job Number & Priority / Status Badges */}
+                  {/* Card Header: Job ID, Date, Priority, and Status */}
                   <div className="mobile-job-header">
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <b style={{ color: "#0176d3", fontSize: "14px" }}>
-                          <code>#{j.job_number || j.id.slice(0, 6)}</code>
-                        </b>
-                        <span style={{ fontSize: "10.5px", color: "#8291a5" }}>
-                          {new Date(j.created_at).toLocaleDateString("en-IN")}
-                        </span>
-                      </div>
+                    <div className="mobile-job-id-wrap">
+                      <span className="mobile-job-badge-id">#{j.job_number || j.id.slice(0, 8)}</span>
+                      <span className="mobile-job-date">
+                        {new Date(j.created_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <div className="mobile-job-tags-group">
                       <span
                         className="tag"
                         style={{
                           background:
                             j.priority?.toLowerCase() === "urgent"
-                              ? "#fef2f2"
+                              ? "#fee2e2"
                               : j.priority?.toLowerCase() === "high"
-                              ? "#fff5eb"
-                              : "#edf5fc",
+                              ? "#ffedd5"
+                              : "#eff6ff",
                           color:
                             j.priority?.toLowerCase() === "urgent"
-                              ? "#b42318"
+                              ? "#b91c1c"
                               : j.priority?.toLowerCase() === "high"
-                              ? "#e68a2e"
-                              : "#0176d3",
+                              ? "#c2410c"
+                              : "#1d4ed8",
                           fontWeight: 700,
                           fontSize: "10.5px",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          textTransform: "capitalize",
                         }}
                       >
-                        {j.priority}
+                        {j.priority || "Normal"}
                       </span>
                       <span
                         className="tag"
                         style={{
-                          textTransform: "capitalize",
+                          background: isCompleted ? "#dcfce7" : isInProgress ? "#fef3c7" : isQc ? "#ede9fe" : "#f1f5f9",
+                          color: isCompleted ? "#15803d" : isInProgress ? "#b45309" : isQc ? "#6d28d9" : "#475569",
                           fontWeight: 700,
                           fontSize: "10.5px",
-                          background: isCompleted ? "#e8f8f0" : isInProgress ? "#fff2e5" : isQc ? "#f1edff" : "#edf5fc",
-                          color: isCompleted ? "#15945b" : isInProgress ? "#e68a2e" : isQc ? "#7955c7" : "#0176d3",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          textTransform: "capitalize",
                         }}
                       >
                         {j.status.replace(/_/g, " ")}
@@ -905,15 +907,28 @@ export default function JobCardsPage() {
                     </div>
                   </div>
 
-                  {/* Device Info */}
-                  <div className="mobile-job-device">
-                    <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
-                      {j.device?.brand} {j.device?.model}
+                  {/* Device & IMEI Banner */}
+                  <div className="mobile-job-device-banner">
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div className="device-avatar-icon">
+                        <Smartphone size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: "14px", color: "#0f172a" }}>
+                          {j.device?.brand} {j.device?.model}
+                        </div>
+                        {j.device?.storage_capacity && (
+                          <span style={{ fontSize: "11px", color: "#64748b" }}>
+                            {j.device?.storage_capacity} {j.device?.color ? `• ${j.device?.color}` : ""}
+                          </span>
+                        )}
+                      </div>
                     </div>
+
                     {j.device?.imei1 && (
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#f1f5f9", borderRadius: "5px", padding: "1px 7px", fontSize: "11px" }}>
-                        <span style={{ color: "#64748b", fontSize: "10px" }}>IMEI:</span>
-                        <code style={{ fontWeight: 600, color: "#1e293b" }}>{j.device?.imei1}</code>
+                      <div className="mobile-imei-chip">
+                        <span style={{ fontSize: "10px", color: "#64748b", fontWeight: 600 }}>IMEI</span>
+                        <code style={{ fontSize: "11px", fontWeight: 700, color: "#1e293b" }}>{j.device?.imei1}</code>
                         <button
                           type="button"
                           onClick={() => {
@@ -921,81 +936,130 @@ export default function JobCardsPage() {
                             setSuccess(`Copied IMEI ${j.device?.imei1}`);
                             setTimeout(() => setSuccess(null), 2500);
                           }}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "#0176d3", padding: "1px 2px" }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#0176d3", padding: "2px", display: "grid", placeItems: "center" }}
                           title="Copy IMEI"
                         >
-                          <Copy size={11} />
+                          <Copy size={12} />
                         </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Complaint & Diagnosis */}
+                  {/* Reported Problem / Complaint */}
                   {(j.complaint || j.title || j.diagnosis) && (
-                    <div className="mobile-job-issue">
-                      <div style={{ fontWeight: 600, color: "#1e293b", fontSize: "12px" }}>
-                        {j.complaint || j.title}
-                      </div>
-                      {j.diagnosis && (
-                        <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                          Diag: {j.diagnosis}
+                    <div className="mobile-job-complaint-box">
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "7px" }}>
+                        <Wrench size={14} style={{ color: "#0176d3", flexShrink: 0, marginTop: "2px" }} />
+                        <div style={{ flex: 1 }}>
+                          <b style={{ fontSize: "10px", color: "#64748b", textTransform: "uppercase", display: "block", marginBottom: "2px", letterSpacing: "0.3px" }}>
+                            Reported Issue / Problem
+                          </b>
+                          <div style={{ fontSize: "12.5px", fontWeight: 600, color: "#1e293b", lineHeight: "1.35" }}>
+                            {j.complaint || j.title}
+                          </div>
+                          {j.diagnosis && (
+                            <div style={{ marginTop: "6px", paddingTop: "6px", borderTop: "1px dashed #cbd5e1", fontSize: "11px", color: "#0369a1" }}>
+                              <b>Technician Diag:</b> {j.diagnosis}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
 
-                  {/* Technician & Quick Status Change */}
-                  <div className="mobile-job-tech-row">
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>Tech:</span>
-                      {(j.assignments || []).length === 0 ? (
-                        <span style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>
-                          Unassigned
+                  {/* Assigned Technicians & Bench Tasks */}
+                  <div className="mobile-job-tech-box">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700, color: "#475569" }}>
+                        <Users size={12} style={{ color: "#64748b" }} />
+                        <span>Assigned Technician & Tasks:</span>
+                      </div>
+                      {(j.assignments || []).length > 0 && (
+                        <span style={{ fontSize: "10px", fontWeight: 700, background: "#ede9fe", color: "#6d28d9", padding: "1px 6px", borderRadius: "8px" }}>
+                          {(j.assignments || []).length} assigned
                         </span>
-                      ) : (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                          {j.assignments?.map((a) => (
-                            <span key={a.id} className="tag" style={{ background: "#f1edff", color: "#7955c7", fontSize: "10.5px" }}>
-                              {a.task_name}
-                            </span>
-                          ))}
-                        </div>
                       )}
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
-                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>Status:</span>
-                      <select
-                        value={j.status}
-                        onChange={(e) => handleStatusChange(j.id, e.target.value)}
-                        style={{
-                          height: "28px",
-                          border: "1.5px solid #cbd5e1",
-                          borderRadius: "6px",
-                          padding: "0 6px",
-                          fontSize: "11px",
-                          background: "#fff",
-                          fontWeight: 500,
-                          color: "#1e293b",
-                          outline: "none",
-                        }}
-                      >
-                        <option value="received">Received</option>
-                        <option value="assigned">Assigned</option>
-                        <option value="in_progress">In Repair</option>
-                        <option value="waiting_for_parts">Waiting Parts</option>
-                        <option value="qc_pending">QC Testing</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </div>
+                    {(j.assignments || []).length === 0 ? (
+                      <div style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic", background: "#f8fafc", padding: "6px 8px", borderRadius: "6px" }}>
+                        Unassigned — No technician assigned yet
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                        {j.assignments?.map((a) => {
+                          let spec = "";
+                          let taskName = a.task_name || "Repair task";
+                          const match = taskName.match(/^\[(.*?)\]\s*(.*)$/);
+                          if (match) {
+                            spec = match[1];
+                            taskName = match[2];
+                          }
+                          const techProfile = staffList.find((s) => s.id === a.technician_id);
+                          return (
+                            <div
+                              key={a.id}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                padding: "6px 9px",
+                                background: "#ffffff",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "6px",
+                                gap: "8px",
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flex: 1 }}>
+                                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#7955c7", flexShrink: 0 }} />
+                                <span style={{ fontSize: "11.5px", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {taskName}
+                                </span>
+                                {spec && (
+                                  <span style={{ fontSize: "9px", fontWeight: 600, background: "#e0f2fe", color: "#0369a1", padding: "1px 5px", borderRadius: "4px", flexShrink: 0 }}>
+                                    {spec}
+                                  </span>
+                                )}
+                              </div>
+                              {techProfile && (
+                                <span style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, flexShrink: 0 }}>
+                                  {techProfile.full_name?.split(" ")[0]}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Action Buttons Row */}
-                  <div className="mobile-job-actions">
+                  {/* Quick Workflow Status Dropdown Row */}
+                  <div className="mobile-job-status-row">
+                    <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.2px" }}>
+                      Workflow Status:
+                    </span>
+                    <select
+                      value={j.status}
+                      onChange={(e) => handleStatusChange(j.id, e.target.value)}
+                      className="mobile-status-select-control"
+                    >
+                      <option value="received">Received / Intake</option>
+                      <option value="assigned">Assigned to Tech</option>
+                      <option value="in_progress">Under Active Repair</option>
+                      <option value="waiting_for_parts">Waiting for Parts</option>
+                      <option value="qc_pending">QC Testing Gate</option>
+                      <option value="completed">Completed</option>
+                      <option value="delivered">Delivered to Customer</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+
+                  {/* 2x2 Balanced Action Buttons Grid */}
+                  <div className="mobile-job-grid-actions">
                     <button
+                      type="button"
                       className="secondary-btn"
-                      style={{ padding: "5px 9px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                      style={{ padding: "8px 8px", fontSize: "11.5px", justifyContent: "center", borderRadius: "7px", fontWeight: 600 }}
                       onClick={() => {
                         setSelectedJob(j);
                         setAssignTechId(staffList.find((s) => s.role === "technician")?.id || user?.id || "");
@@ -1003,23 +1067,13 @@ export default function JobCardsPage() {
                       }}
                       title="Assign technician & task"
                     >
-                      <UserCheck size={13} /> Assign
+                      <UserCheck size={13} /> Assign Tech
                     </button>
 
-                    {(isReceived || isAssigned) && (
-                      <button
-                        className="secondary-btn"
-                        style={{ padding: "5px 9px", fontSize: "11px", color: "#e68a2e", flex: 1, justifyContent: "center" }}
-                        onClick={() => handleStatusChange(j.id, "in_progress")}
-                        title="Begin bench repair"
-                      >
-                        <Wrench size={13} /> Start
-                      </button>
-                    )}
-
                     <button
+                      type="button"
                       className="secondary-btn"
-                      style={{ padding: "5px 9px", fontSize: "11px", flex: 1, justifyContent: "center" }}
+                      style={{ padding: "8px 8px", fontSize: "11.5px", justifyContent: "center", borderRadius: "7px", fontWeight: 600 }}
                       onClick={() => {
                         setSelectedJob(j);
                         const availablePart = parts.find((p) => (p.quantity || p.current_stock || 0) > 0) || parts[0];
@@ -1029,42 +1083,64 @@ export default function JobCardsPage() {
                       }}
                       title="Issue spare part"
                     >
-                      <Wrench size={13} /> Part
+                      <Wrench size={13} /> + Part (FIFO)
                     </button>
 
-                    {isInProgress && (
+                    {/* Third Button: Lifecycle Action */}
+                    {(isReceived || isAssigned) ? (
                       <button
-                        className="secondary-btn"
-                        style={{ padding: "5px 9px", fontSize: "11px", color: "#7955c7", flex: 1, justifyContent: "center" }}
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: "8px 8px", fontSize: "11.5px", justifyContent: "center", borderRadius: "7px", background: "#f59e0b", borderColor: "#d97706" }}
+                        onClick={() => handleStatusChange(j.id, "in_progress")}
+                        title="Begin bench repair"
+                      >
+                        <Wrench size={13} /> Start Repair
+                      </button>
+                    ) : isInProgress ? (
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: "8px 8px", fontSize: "11.5px", justifyContent: "center", borderRadius: "7px", background: "#7955c7", borderColor: "#6b46c1" }}
                         onClick={() => handleStatusChange(j.id, "qc_pending")}
                         title="Submit for QC testing"
                       >
-                        <ShieldCheck size={13} /> To QC
+                        <ShieldCheck size={13} /> To QC Gate
                       </button>
-                    )}
-
-                    {!isCompleted ? (
+                    ) : !isCompleted ? (
                       <button
-                        className="secondary-btn"
-                        style={{ padding: "5px 9px", fontSize: "11px", color: "#15945b", flex: 1, justifyContent: "center" }}
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: "8px 8px", fontSize: "11.5px", justifyContent: "center", borderRadius: "7px", background: "#16a34a", borderColor: "#15803d" }}
                         onClick={() => handleDeliverPhone(j)}
                         title="Mark repair completed and phone delivered"
                       >
                         <Truck size={13} /> Deliver
                       </button>
                     ) : (
-                      <span style={{ fontSize: "11px", color: "#15945b", fontWeight: 700, padding: "5px 6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px", background: "#dcfce7", color: "#15803d", borderRadius: "7px", fontSize: "11.5px", fontWeight: 700, padding: "8px 8px" }}>
                         ✓ Delivered
-                      </span>
+                      </div>
                     )}
 
+                    {/* Fourth Button: View Details */}
                     <button
+                      type="button"
                       className="secondary-btn"
-                      style={{ padding: "5px 9px", fontSize: "11px", justifyContent: "center" }}
+                      style={{
+                        padding: "8px 8px",
+                        fontSize: "11.5px",
+                        justifyContent: "center",
+                        borderRadius: "7px",
+                        fontWeight: 600,
+                        color: "#0176d3",
+                        background: "#eff6ff",
+                        borderColor: "#bfdbfe",
+                      }}
                       onClick={() => handleOpenDetails(j)}
                       title="View full ticket details & history"
                     >
-                      <Eye size={13} /> Details
+                      <Eye size={13} /> View Details
                     </button>
                   </div>
                 </div>
