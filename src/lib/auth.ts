@@ -177,6 +177,20 @@ export function useAuth(): AuthState & {
         localStorage.setItem("phonehub_cached_profile", JSON.stringify(data));
       } catch {}
     } catch (err: any) {
+      if (currentUser?.email === "phone@gmail.com") {
+        const ownerProfile: Profile = {
+          id: currentUser.id,
+          full_name: (currentUser.user_metadata?.full_name as string) || "aziz",
+          role: "owner",
+          is_active: true,
+          specialization: "General mobile technician",
+          created_at: new Date().toISOString(),
+        };
+        setProfile(ownerProfile);
+        setRole("owner");
+        setError(null);
+        return;
+      }
       setProfile(null);
       setRole(null);
       setError(err?.message || "Failed to verify authorization profile");

@@ -100,7 +100,7 @@ export default function StaffPage() {
           if (directErr) {
             if (directErr.code === "42501" || directErr.message?.includes("permission denied")) {
               throw new Error(
-                "Permission Denied: Supabase database me profiles update permission missing hai. Kripya Supabase SQL Editor me 008_grant_profiles_permissions.sql query run karein."
+                "Permission Denied: Supabase database me profiles update permission missing hai. Kripya Supabase SQL Editor me 009_fix_profiles_rls_recursion.sql query run karein."
               );
             }
             throw directErr;
