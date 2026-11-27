@@ -564,89 +564,79 @@ export default function JobCardsPage() {
       </div>
 
       <div className="panel">
-        <div className="jobs-toolbar-container">
-          <div className="jobs-search-and-actions">
-            <div className="searchbox jobs-searchbox" style={{ flex: 1 }}>
-              <Search size={16} />
-              <input
-                placeholder="Search by Job #, brand, model, IMEI, or issue..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+        <div className="jobs-toolbar-single-row">
+          {/* Search Box */}
+          <div className="searchbox jobs-searchbox">
+            <Search size={16} />
+            <input
+              placeholder="Search by Job #, brand, model, IMEI, or issue..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          {/* Filters Grid */}
-          <div className="jobs-filters-grid">
-            {/* Status Filter */}
-            <CustomSelect
-              label="Status"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              options={[
-                { value: "all", label: "All Statuses" },
-                { value: "received", label: "Received / Intake" },
-                { value: "assigned", label: "Assigned to Tech" },
-                { value: "in_progress", label: "In Repair" },
-                { value: "waiting_for_parts", label: "Waiting for Parts" },
-                { value: "qc_pending", label: "QC Testing" },
-                { value: "completed", label: "Completed / Delivered" },
-                { value: "cancelled", label: "Cancelled" },
-              ]}
-              minWidth="160px"
-            />
+          {/* Status Filter */}
+          <CustomSelect
+            label="Status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "all", label: "All Statuses" },
+              { value: "received", label: "Received / Intake" },
+              { value: "assigned", label: "Assigned to Tech" },
+              { value: "in_progress", label: "In Repair" },
+              { value: "waiting_for_parts", label: "Waiting for Parts" },
+              { value: "qc_pending", label: "QC Testing" },
+              { value: "completed", label: "Completed / Delivered" },
+              { value: "cancelled", label: "Cancelled" },
+            ]}
+            minWidth="140px"
+          />
 
-            {/* Priority Filter */}
-            <CustomSelect
-              label="Priority"
-              value={priorityFilter}
-              onChange={setPriorityFilter}
-              options={[
-                { value: "all", label: "All Priorities" },
-                { value: "urgent", label: "Urgent" },
-                { value: "high", label: "High" },
-                { value: "normal", label: "Normal" },
-                { value: "low", label: "Low" },
-              ]}
-              minWidth="140px"
-            />
+          {/* Priority Filter */}
+          <CustomSelect
+            label="Priority"
+            value={priorityFilter}
+            onChange={setPriorityFilter}
+            options={[
+              { value: "all", label: "All Priorities" },
+              { value: "urgent", label: "Urgent" },
+              { value: "high", label: "High" },
+              { value: "normal", label: "Normal" },
+              { value: "low", label: "Low" },
+            ]}
+            minWidth="130px"
+          />
 
-            {/* Technician Filter */}
-            <CustomSelect
-              label="Technician"
-              value={techFilter}
-              onChange={setTechFilter}
-              options={[
-                { value: "all", label: "All Technicians" },
-                ...staffList
-                  .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
-                  .map((tech) => ({
+          {/* Technician Filter */}
+          <CustomSelect
+            label="Technician"
+            value={techFilter}
+            onChange={setTechFilter}
+            options={[
+              { value: "all", label: "All Technicians" },
+              ...staffList
+                .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
+                .map((tech) => {
+                  const techInfo = getTechShortName(tech.id, staffList, user);
+                  return {
                     value: tech.id,
-                    label: `${tech.full_name || "Technician"} (${tech.role.replace(/_/g, " ")})`,
-                  })),
-              ]}
-              minWidth="170px"
-            />
-          </div>
+                    label: `${techInfo.shortName} (${tech.role.replace(/_/g, " ")})`,
+                  };
+                }),
+            ]}
+            minWidth="150px"
+          />
 
-          <div className="jobs-meta-bar">
-            <button className="icon-btn" onClick={loadData} title="Refresh">
-              <RefreshCw size={16} />
-            </button>
-            <span
-              className="count"
-              style={{
-                background: "#f1f5f9",
-                color: "#475569",
-                fontSize: "12px",
-                fontWeight: 600,
-                padding: "4px 10px",
-                borderRadius: "20px",
-              }}
-            >
-              📋 {filteredJobs.length} job card{filteredJobs.length === 1 ? "" : "s"}
-            </span>
-          </div>
+          {/* Refresh Action Button */}
+          <button className="icon-btn jobs-refresh-btn" onClick={loadData} title="Refresh">
+            <RefreshCw size={15} />
+          </button>
+
+          {/* Count Badge */}
+          <span className="count jobs-count-badge">
+            📋 {filteredJobs.length} job card{filteredJobs.length === 1 ? "" : "s"}
+          </span>
         </div>
 
         {/* 1. Desktop View: Streamlined 7-column Table */}

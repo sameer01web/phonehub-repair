@@ -1841,33 +1841,74 @@ select option {
   align-items: center;
 }
 
-/* Repair Job Cards Responsive Structure */
-.jobs-toolbar-container {
+/* Repair Job Cards Single-Line Unified Toolbar */
+.jobs-toolbar-single-row {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
-.jobs-search-and-actions {
+.jobs-toolbar-single-row .jobs-searchbox {
+  flex: 1 1 200px;
+  min-width: 180px;
+  width: auto;
+  height: 38px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.jobs-filters-grid {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
+  box-sizing: border-box;
 }
 
-.jobs-meta-bar {
-  display: flex;
+.jobs-toolbar-single-row .jobs-searchbox input {
+  font-size: 12.5px;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.jobs-toolbar-single-row .jobs-refresh-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 4px;
+  justify-content: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.jobs-toolbar-single-row .jobs-refresh-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.jobs-toolbar-single-row .jobs-count-badge {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .desktop-jobs-table,
@@ -2338,28 +2379,39 @@ select option {
     font-size: 11.5px !important;
   }
 
-  .devices-filters-grid,
-  .jobs-filters-grid {
+  .devices-filters-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     width: 100%;
   }
 
-  .devices-filters-grid .custom-select-container,
-  .jobs-filters-grid .custom-select-container {
+  .devices-filters-grid .custom-select-container {
     width: 100% !important;
     min-width: 0 !important;
   }
 
-  .jobs-filters-grid .custom-select-container:last-child {
-    grid-column: span 2;
-  }
-
-  .devices-meta-bar,
-  .jobs-meta-bar {
+  .devices-meta-bar {
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .jobs-toolbar-single-row {
+    gap: 8px !important;
+  }
+
+  .jobs-toolbar-single-row .jobs-searchbox {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .jobs-toolbar-single-row .custom-select-container {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0 !important;
+  }
+
+  .jobs-toolbar-single-row .custom-select-container:nth-of-type(3) {
+    flex: 1 1 100%;
   }
 
   .page-head {
