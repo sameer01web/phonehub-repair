@@ -564,105 +564,87 @@ Xiaomi, Redmi Note 13, 356890098765434, Blue, 128GB, Speaker muffled`;
 
       {/* Main Panel */}
       <div className="panel" style={{ paddingBottom: "24px" }}>
-        <div className="devices-toolbar-container">
-          {/* Row 1: Search & Dropdown Filters */}
-          <div className="devices-search-and-actions">
-            <div className="searchbox" style={{ flex: 1, minWidth: "220px", position: "relative" }}>
-              <Search size={16} />
-              <input
-                placeholder="Search brand, model, IMEI, notes..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && loadData()}
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#94a3b8",
-                    padding: 0,
-                  }}
-                  title="Clear search"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* Custom Select Filters Grid */}
-            <div className="devices-filters-grid">
-              <CustomSelect
-                label="Status"
-                value={statusFilter}
-                onChange={setStatusFilter}
-                options={statuses}
-                minWidth="160px"
-              />
-
-              <CustomSelect
-                label="Storage"
-                value={storageFilter}
-                onChange={setStorageFilter}
-                options={storageOptions.map((st) => ({
-                  value: st,
-                  label: st === "all" ? "All Storage" : st,
-                }))}
-                minWidth="135px"
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Metadata & Fast Actions */}
-          <div className="devices-meta-bar">
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+        <div className="devices-toolbar-single-row">
+          {/* Search Box */}
+          <div className="searchbox devices-searchbox">
+            <Search size={16} />
+            <input
+              placeholder="Search brand, model, IMEI, notes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && loadData()}
+            />
+            {search && (
               <button
-                className="icon-btn"
-                onClick={loadData}
-                title="Refresh list"
-                style={{ height: "34px", width: "34px", borderRadius: "8px" }}
+                type="button"
+                onClick={() => setSearch("")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#94a3b8",
+                  padding: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+                title="Clear search"
               >
-                <RefreshCw size={14} />
+                <X size={14} />
               </button>
-
-              {(statusFilter !== "all" || storageFilter !== "all" || search.trim() !== "") && (
-                <button
-                  type="button"
-                  className="secondary-btn"
-                  onClick={() => {
-                    setStatusFilter("all");
-                    setStorageFilter("all");
-                    setConditionFilter("all");
-                    setSearch("");
-                  }}
-                  style={{ height: "32px", fontSize: "11px", padding: "0 10px", color: "#e68a2e", borderRadius: "8px" }}
-                >
-                  <X size={12} /> Reset Filters
-                </button>
-              )}
-            </div>
-
-            <span
-              className="count"
-              style={{
-                fontSize: "12px",
-                color: "#0176d3",
-                fontWeight: 600,
-                background: "#edf5fc",
-                padding: "4px 10px",
-                borderRadius: "20px",
-              }}
-            >
-              📱 {filteredDevices.length} phone{filteredDevices.length === 1 ? "" : "s"} found
-            </span>
+            )}
           </div>
+
+          {/* Status Filter */}
+          <CustomSelect
+            label="Status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={statuses}
+            minWidth="140px"
+          />
+
+          {/* Storage Filter */}
+          <CustomSelect
+            label="Storage"
+            value={storageFilter}
+            onChange={setStorageFilter}
+            options={storageOptions.map((st) => ({
+              value: st,
+              label: st === "all" ? "All Storage" : st,
+            }))}
+            minWidth="130px"
+          />
+
+          {/* Refresh Action Button */}
+          <button
+            className="icon-btn devices-refresh-btn"
+            onClick={loadData}
+            title="Refresh list"
+          >
+            <RefreshCw size={15} />
+          </button>
+
+          {/* Reset Filters (if active) */}
+          {(statusFilter !== "all" || storageFilter !== "all" || search.trim() !== "") && (
+            <button
+              type="button"
+              className="secondary-btn devices-reset-btn"
+              onClick={() => {
+                setStatusFilter("all");
+                setStorageFilter("all");
+                setConditionFilter("all");
+                setSearch("");
+              }}
+              title="Reset all active filters"
+            >
+              <X size={12} /> Reset
+            </button>
+          )}
+
+          {/* Phones Count Badge */}
+          <span className="count devices-count-badge">
+            📱 {filteredDevices.length} phone{filteredDevices.length === 1 ? "" : "s"} found
+          </span>
         </div>
 
         {/* 1. Desktop View: Comprehensive 8-column Table */}

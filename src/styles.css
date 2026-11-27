@@ -1744,34 +1744,86 @@ select option {
   box-sizing: border-box;
 }
 
-/* Devices Responsive Filter Bar */
-.devices-toolbar-container {
+/* Devices Single-Line Unified Toolbar */
+.devices-toolbar-single-row {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.devices-search-and-actions {
-  display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.devices-filters-grid {
+.devices-toolbar-single-row .devices-searchbox {
+  flex: 1 1 200px;
+  min-width: 180px;
+  width: auto;
+  height: 38px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
   display: flex;
+  align-items: center;
   gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
-.devices-meta-bar {
-  display: flex;
+.devices-toolbar-single-row .devices-searchbox input {
+  font-size: 12.5px;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.devices-toolbar-single-row .devices-refresh-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 4px;
+  justify-content: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.devices-toolbar-single-row .devices-refresh-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.devices-toolbar-single-row .devices-reset-btn {
+  height: 38px;
+  font-size: 11.5px;
+  padding: 0 10px;
+  color: #e68a2e;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.devices-toolbar-single-row .devices-count-badge {
+  background: #edf5fc;
+  color: #0176d3;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1.5px solid #bfdbfe;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 /* Mobile Handset Cards vs Desktop Table */
@@ -2391,20 +2443,18 @@ select option {
     min-width: 0 !important;
   }
 
-  .devices-meta-bar {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
+  .devices-toolbar-single-row,
   .jobs-toolbar-single-row {
     gap: 8px !important;
   }
 
+  .devices-toolbar-single-row .devices-searchbox,
   .jobs-toolbar-single-row .jobs-searchbox {
     width: 100% !important;
     flex: 1 1 100% !important;
   }
 
+  .devices-toolbar-single-row .custom-select-container,
   .jobs-toolbar-single-row .custom-select-container {
     flex: 1 1 calc(50% - 4px);
     min-width: 0 !important;
