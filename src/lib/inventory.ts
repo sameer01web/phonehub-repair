@@ -628,15 +628,19 @@ export async function issueSparePartFifo(
       const batchCost = deductFromBatch * Number(batch.unit_cost || 0);
       totalFifoCost += batchCost;
 
-      await supabase.from("stock_ledger").insert({
-        spare_part_id: sparePartId,
-        movement_type: "issue",
-        quantity: -deductFromBatch,
-        unit_cost: Number(batch.unit_cost || 0),
-        job_card_id: jobCardId,
-        reference_note: `FIFO batch issue to Job Card`,
-        performed_by: authUser?.id || null,
-      });
+      try {
+        await supabase.from("stock_ledger").insert({
+          spare_part_id: sparePartId,
+          movement_type: "issue",
+          quantity: Math.abs(deductFromBatch),
+          unit_cost: Number(batch.unit_cost || 0),
+          job_card_id: jobCardId,
+          reference_note: `FIFO batch issue to Job Card`,
+          performed_by: authUser?.id || null,
+        });
+      } catch (ledgBatchErr) {
+        console.warn("Could not insert batch ledger to Supabase:", ledgBatchErr);
+      }
 
       remainingNeeded -= deductFromBatch;
     }
@@ -647,15 +651,19 @@ export async function issueSparePartFifo(
     const fallbackUnitCost = Number(part.purchase_price ?? part.unit_cost ?? 0);
     totalFifoCost += remainingNeeded * fallbackUnitCost;
 
-    await supabase.from("stock_ledger").insert({
-      spare_part_id: sparePartId,
-      movement_type: "issue",
-      quantity: -remainingNeeded,
-      unit_cost: fallbackUnitCost,
-      job_card_id: jobCardId,
-      reference_note: `Direct catalogue stock issue to Job Card`,
-      performed_by: authUser?.id || null,
-    });
+    try {
+      await supabase.from("stock_ledger").insert({
+        spare_part_id: sparePartId,
+        movement_type: "issue",
+        quantity: Math.abs(remainingNeeded),
+        unit_cost: fallbackUnitCost,
+        job_card_id: jobCardId,
+        reference_note: `Direct catalogue stock issue to Job Card`,
+        performed_by: authUser?.id || null,
+      });
+    } catch (ledgDirectErr) {
+      console.warn("Could not insert direct ledger to Supabase:", ledgDirectErr);
+    }
   }
 
   // Atomically decrement master current_stock
@@ -776,7 +784,7 @@ export async function recordStockAdjustment(
     await supabase.from("stock_ledger").insert({
       spare_part_id: sparePartId,
       movement_type: movementType,
-      quantity: quantityDelta,
+      quantity: Math.max(1, Math.abs(quantityDelta)),
       unit_cost: 0,
       reference_note: reason || `Manual stock adjustment (${movementType})`,
       performed_by: authUser?.id || null,
