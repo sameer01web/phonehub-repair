@@ -112,7 +112,7 @@ export default function JobCardsPage() {
   const [assignTechId, setAssignTechId] = useState("");
   const [selectedSpec, setSelectedSpec] = useState<string>("Display specialist");
   const [taskName, setTaskName] = useState("Screen & OLED Replacement");
-  const [laborCost, setLaborCost] = useState("400");
+  const [laborCost, setLaborCost] = useState("0");
 
   // Issue Part Form
   const [partId, setPartId] = useState("");
@@ -1533,17 +1533,6 @@ export default function JobCardsPage() {
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-              </label>
-
-              <label style={{ fontSize: "11px", color: "#687b92", display: "grid", gap: "4px" }}>
-                Labor Cost Rate (₹):
-                <input
-                  type="number"
-                  min="0"
-                  value={laborCost}
-                  onChange={(e) => setLaborCost(e.target.value)}
-                  style={{ height: "36px", border: "1px solid #e0e7ef", borderRadius: "6px", padding: "0 8px" }}
-                />
               </label>
             </div>
 
