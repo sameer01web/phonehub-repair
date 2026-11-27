@@ -1308,7 +1308,22 @@ export default function JobCardsPage() {
                     Select Phone from Inventory:
                     <select
                       value={existingDeviceId}
-                      onChange={(e) => setExistingDeviceId(e.target.value)}
+                      onChange={(e) => {
+                        const devId = e.target.value;
+                        setExistingDeviceId(devId);
+                        if (devId) {
+                          const dev = devices.find((d) => d.id === devId);
+                          if (dev) {
+                            const raw = (dev.initial_issue || dev.notes || "").trim();
+                            const cleanProblem = dev.initial_issue
+                              ? dev.initial_issue.trim()
+                              : raw.replace(/^\[.*?\]\s*/, "").trim();
+                            setComplaint(cleanProblem);
+                          }
+                        } else {
+                          setComplaint("");
+                        }
+                      }}
                       style={{
                         width: "100%",
                         maxWidth: "100%",
@@ -1350,6 +1365,10 @@ export default function JobCardsPage() {
                           d.status === "completed" ||
                           d.status === "delivered" ||
                           normalizeDeviceStatus(d.status) === "ready_for_sale";
+                        const rawIssue = (d.initial_issue || d.notes || "").trim();
+                        const cleanIssue = d.initial_issue
+                          ? d.initial_issue.trim()
+                          : rawIssue.replace(/^\[.*?\]\s*/, "").trim();
                         return (
                           <option
                             key={d.id}
@@ -1360,7 +1379,7 @@ export default function JobCardsPage() {
                               fontWeight: isReady ? 700 : 500,
                             }}
                           >
-                            {isReady ? "✓ " : ""}{d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)}){isReady ? " — [Done / Ready]" : ""}
+                            {isReady ? "✓ " : ""}{d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""}{cleanIssue ? ` — [${cleanIssue.length > 25 ? cleanIssue.slice(0, 25) + "..." : cleanIssue}]` : ""} ({formatDeviceStatus(d.status)}){isReady ? " — [Done / Ready]" : ""}
                           </option>
                         );
                       })}
@@ -1413,6 +1432,18 @@ export default function JobCardsPage() {
                           <div style={{ fontSize: "11px", color: isReady ? "#166534" : "#475569", marginTop: "3px" }}>
                             IMEI: <code style={{ color: "#0f172a", fontWeight: 700 }}>{selectedDev.imei1 || "No IMEI recorded"}</code>
                           </div>
+                          {(() => {
+                            const rawProb = (selectedDev.initial_issue || selectedDev.notes || "").trim();
+                            const cleanProb = selectedDev.initial_issue
+                              ? selectedDev.initial_issue.trim()
+                              : rawProb.replace(/^\[.*?\]\s*/, "").trim();
+                            if (!cleanProb) return null;
+                            return (
+                              <div style={{ fontSize: "11px", color: "#475569", marginTop: "3px" }}>
+                                Initial Problem / Notes: <strong style={{ color: "#0284c7" }}>{cleanProb}</strong>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <span
                           className="tag"
@@ -1434,7 +1465,14 @@ export default function JobCardsPage() {
 
               <div style={{ marginTop: "14px", display: "grid", gap: "12px" }}>
                 <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
-                  Reported Complaint / Issue *
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Reported Complaint / Issue *</span>
+                    {intakeMode === "existing_phone" && existingDeviceId && (
+                      <span style={{ fontSize: "10.5px", color: "#0284c7", fontWeight: 500 }}>
+                        (Auto-filled from device record • fully editable)
+                      </span>
+                    )}
+                  </div>
                   <input
                     required
                     placeholder="e.g. Broken screen display, touch unresponsive, battery drain"
