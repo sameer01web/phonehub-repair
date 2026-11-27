@@ -144,15 +144,24 @@ export default function CameraImeiScanner({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop" style={{ zIndex: 90 }}>
+    <div
+      className="modal-backdrop"
+      style={{
+        zIndex: 1200,
+        background: "rgba(15, 23, 42, 0.75)",
+        backdropFilter: "blur(4px)",
+      }}
+    >
       <div
         className="modal"
         style={{
-          maxWidth: "460px",
+          maxWidth: "480px",
           width: "95%",
           padding: "20px",
           borderRadius: "14px",
           textAlign: "center",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+          zIndex: 1201,
         }}
       >
         {/* Header */}
