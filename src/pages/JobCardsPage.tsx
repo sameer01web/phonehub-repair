@@ -96,6 +96,25 @@ function getTechShortName(techId?: string | null, staffList: Profile[] = [], cur
   return { shortName, fullName: clean, initials };
 }
 
+/**
+ * Robust extractor for device initial problem/fault across all schema iterations
+ */
+function extractDeviceIssue(dev?: Device | null): string {
+  if (!dev) return "";
+  if (dev.initial_issue && dev.initial_issue.trim()) {
+    return dev.initial_issue.trim();
+  }
+  if (dev.notes) {
+    const matchIssue = dev.notes.match(/Issue:\s*([^|\]]+)/i);
+    if (matchIssue && matchIssue[1].trim()) {
+      return matchIssue[1].trim();
+    }
+    const cleanNotes = dev.notes.replace(/^\[.*?\]\s*/, "").trim();
+    if (cleanNotes) return cleanNotes;
+  }
+  return "";
+}
+
 export default function JobCardsPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -193,6 +212,7 @@ export default function JobCardsPage() {
 
   async function handleOpenAddJob() {
     setShowAddJob(true);
+    setIntakeMode("new_phone");
     setBrand("");
     setModel("");
     setImei("");
@@ -1174,26 +1194,81 @@ export default function JobCardsPage() {
             className="modal"
             onSubmit={handleCreateJob}
             style={{
-              maxWidth: "600px",
+              maxWidth: "580px",
               width: "100%",
-              maxHeight: "88vh",
+              maxHeight: "90vh",
               display: "flex",
               flexDirection: "column",
-              padding: "18px 20px 16px",
+              padding: "20px 22px 18px",
               boxSizing: "border-box",
               overflow: "hidden",
-              borderRadius: "16px",
+              borderRadius: "18px",
+              boxShadow: "0 20px 60px rgba(15, 23, 42, 0.22)",
             }}
           >
-            <div className="modal-head" style={{ flexShrink: 0, marginBottom: "12px", paddingBottom: "10px", borderBottom: "1px solid #f1f5f9" }}>
-              <div>
-                <h2 style={{ fontSize: "16px", color: "#0f172a", margin: "0 0 3px 0" }}>Open Repair Job Card</h2>
-                <p style={{ fontSize: "11.5px", color: "#64748b", margin: 0 }}>Register incoming handset and open an active bench repair ticket.</p>
+            {/* Header with Icon, Title, and Clean Close Button */}
+            <div
+              className="modal-head"
+              style={{
+                flexShrink: 0,
+                marginBottom: "14px",
+                paddingBottom: "12px",
+                borderBottom: "1px solid #f1f5f9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "10px",
+                    background: "#eff6ff",
+                    border: "1px solid #bfdbfe",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#0176d3",
+                    flexShrink: 0,
+                  }}
+                >
+                  <ClipboardList size={20} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", margin: "0 0 2px 0", letterSpacing: "-0.2px" }}>
+                    Open Repair Job Card
+                  </h2>
+                  <p style={{ fontSize: "11.5px", color: "#64748b", margin: 0 }}>
+                    Register incoming handset or select from stock for bench repair.
+                  </p>
+                </div>
               </div>
-              <button type="button" className="icon-btn" onClick={() => setShowAddJob(false)}>×</button>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setShowAddJob(false)}
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "#f1f5f9",
+                  color: "#64748b",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                ×
+              </button>
             </div>
 
-            {/* Scrollable Modal Body with thin scrollbar */}
+            {/* Scrollable Modal Body */}
             <div className="modal-scroll-body" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", paddingRight: "4px" }}>
               {/* Intake Mode Segmented Control */}
               <div
@@ -1202,97 +1277,108 @@ export default function JobCardsPage() {
                   gridTemplateColumns: "1fr 1fr",
                   background: "#f1f5f9",
                   padding: "4px",
-                  borderRadius: "9px",
+                  borderRadius: "10px",
                   marginBottom: "16px",
                   gap: "4px",
+                  border: "1px solid #e2e8f0",
                 }}
               >
                 <button
                   type="button"
-                  onClick={() => setIntakeMode("new_phone")}
+                  onClick={() => {
+                    setIntakeMode("new_phone");
+                    setExistingDeviceId("");
+                    setComplaint("");
+                  }}
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
                     padding: "8px 10px",
-                    borderRadius: "7px",
+                    borderRadius: "8px",
                     border: "none",
                     background: intakeMode === "new_phone" ? "#ffffff" : "transparent",
                     color: intakeMode === "new_phone" ? "#0176d3" : "#64748b",
                     fontWeight: intakeMode === "new_phone" ? 700 : 500,
-                    fontSize: "12px",
-                    boxShadow: intakeMode === "new_phone" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    fontSize: "12.5px",
+                    boxShadow: intakeMode === "new_phone" ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                     cursor: "pointer",
-                    textAlign: "center",
                     transition: "all 0.15s ease",
                   }}
                 >
-                  + New Handset Intake
+                  <Plus size={14} /> New Handset Intake
                 </button>
                 <button
                   type="button"
                   onClick={() => setIntakeMode("existing_phone")}
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
                     padding: "8px 10px",
-                    borderRadius: "7px",
+                    borderRadius: "8px",
                     border: "none",
                     background: intakeMode === "existing_phone" ? "#ffffff" : "transparent",
                     color: intakeMode === "existing_phone" ? "#0176d3" : "#64748b",
                     fontWeight: intakeMode === "existing_phone" ? 700 : 500,
-                    fontSize: "12px",
-                    boxShadow: intakeMode === "existing_phone" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    fontSize: "12.5px",
+                    boxShadow: intakeMode === "existing_phone" ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                     cursor: "pointer",
-                    textAlign: "center",
                     transition: "all 0.15s ease",
                   }}
                 >
-                  Select from Inventory
+                  <Smartphone size={14} /> Select from Inventory
                 </button>
               </div>
 
               {intakeMode === "new_phone" ? (
-                <div className="form-grid">
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "5px" }}>
                     Brand *
                     <input
                       required
                       placeholder="e.g. Apple, Samsung, Xiaomi"
                       value={brand}
                       onChange={(e) => setBrand(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                      style={{ height: "40px", border: "1.5px solid #cbd5e1", borderRadius: "9px", padding: "0 12px", fontSize: "13px" }}
                     />
                   </label>
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "5px" }}>
                     Model *
                     <input
                       required
                       placeholder="e.g. iPhone 15 Pro, Galaxy S24"
                       value={model}
                       onChange={(e) => setModel(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                      style={{ height: "40px", border: "1.5px solid #cbd5e1", borderRadius: "9px", padding: "0 12px", fontSize: "13px" }}
                     />
                   </label>
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "5px" }}>
                     IMEI Number (14-16 digits)
                     <input
                       placeholder="e.g. 354890098765432"
                       value={imei}
                       onChange={(e) => setImei(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                      style={{ height: "40px", border: "1.5px solid #cbd5e1", borderRadius: "9px", padding: "0 12px", fontSize: "13px" }}
                     />
                   </label>
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "5px" }}>
                     Color
                     <input
                       placeholder="e.g. Black, Blue, Gold"
                       value={color}
                       onChange={(e) => setColor(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px" }}
+                      style={{ height: "40px", border: "1.5px solid #cbd5e1", borderRadius: "9px", padding: "0 12px", fontSize: "13px" }}
                     />
                   </label>
-                  <label style={{ gridColumn: "1 / -1", fontSize: "11.5px", color: "#475569", fontWeight: 600 }}>
+                  <label style={{ gridColumn: "1 / -1", fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "5px" }}>
                     Storage Capacity
                     <select
                       value={storage}
                       onChange={(e) => setStorage(e.target.value)}
-                      style={{ height: "38px", border: "1.5px solid #cbd5e1", borderRadius: "8px", padding: "0 10px", fontSize: "12.5px", background: "#fff" }}
+                      style={{ height: "40px", border: "1.5px solid #cbd5e1", borderRadius: "9px", padding: "0 12px", fontSize: "13px", background: "#fff", cursor: "pointer" }}
                     >
                       <option value="64GB">64GB</option>
                       <option value="128GB">128GB</option>
@@ -1304,8 +1390,8 @@ export default function JobCardsPage() {
                 </div>
               ) : (
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "6px" }}>
-                    Select Phone from Inventory:
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "6px" }}>
+                    <span>Select Handset from Inventory:</span>
                     <select
                       value={existingDeviceId}
                       onChange={(e) => {
@@ -1313,47 +1399,25 @@ export default function JobCardsPage() {
                         setExistingDeviceId(devId);
                         if (devId) {
                           const dev = devices.find((d) => d.id === devId);
-                          if (dev) {
-                            const raw = (dev.initial_issue || dev.notes || "").trim();
-                            const cleanProblem = dev.initial_issue
-                              ? dev.initial_issue.trim()
-                              : raw.replace(/^\[.*?\]\s*/, "").trim();
-                            setComplaint(cleanProblem);
-                          }
+                          const problem = extractDeviceIssue(dev);
+                          setComplaint(problem);
                         } else {
                           setComplaint("");
                         }
                       }}
                       style={{
                         width: "100%",
-                        maxWidth: "100%",
-                        height: "40px",
-                        border: (() => {
-                          const dev = devices.find((d) => d.id === existingDeviceId);
-                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
-                          return isReady ? "1.5px solid #10b981" : "1.5px solid #cbd5e1";
-                        })(),
-                        borderRadius: "8px",
+                        height: "42px",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: "10px",
                         padding: "0 34px 0 12px",
-                        fontSize: "12.5px",
-                        color: (() => {
-                          if (!existingDeviceId) return "#64748b";
-                          const dev = devices.find((d) => d.id === existingDeviceId);
-                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
-                          return isReady ? "#15803d" : "#0f172a";
-                        })(),
-                        background: (() => {
-                          const dev = devices.find((d) => d.id === existingDeviceId);
-                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
-                          return isReady ? "#f0fdf4" : "#ffffff";
-                        })(),
-                        outline: "none",
+                        fontSize: "13px",
                         fontWeight: 600,
+                        color: existingDeviceId ? "#0f172a" : "#64748b",
+                        background: "#ffffff",
                         boxSizing: "border-box",
                         cursor: "pointer",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
+                        outline: "none",
                       }}
                     >
                       <option value="" style={{ background: "#ffffff", color: "#64748b" }}>
@@ -1365,32 +1429,23 @@ export default function JobCardsPage() {
                           d.status === "completed" ||
                           d.status === "delivered" ||
                           normalizeDeviceStatus(d.status) === "ready_for_sale";
-                        const rawIssue = (d.initial_issue || d.notes || "").trim();
-                        const cleanIssue = d.initial_issue
-                          ? d.initial_issue.trim()
-                          : rawIssue.replace(/^\[.*?\]\s*/, "").trim();
+                        const problem = extractDeviceIssue(d);
                         return (
                           <option
                             key={d.id}
                             value={d.id}
                             style={{
-                              backgroundColor: isReady ? "#dcfce7" : "#ffffff",
+                              backgroundColor: isReady ? "#f0fdf4" : "#ffffff",
                               color: isReady ? "#15803d" : "#0f172a",
                               fontWeight: isReady ? 700 : 500,
                             }}
                           >
-                            {isReady ? "✓ " : ""}{d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""}{cleanIssue ? ` — [${cleanIssue.length > 25 ? cleanIssue.slice(0, 25) + "..." : cleanIssue}]` : ""} ({formatDeviceStatus(d.status)}){isReady ? " — [Done / Ready]" : ""}
+                            {isReady ? "✓ " : ""}{d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""}{problem ? ` — [${problem.length > 25 ? problem.slice(0, 25) + "..." : problem}]` : ""} ({formatDeviceStatus(d.status)})
                           </option>
                         );
                       })}
                     </select>
                   </label>
-
-                  {/* Indicator legend */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", fontSize: "11px", color: "#64748b" }}>
-                    <span style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "2px", background: "#dcfce7", border: "1px solid #86efac" }}></span>
-                    <span><strong style={{ color: "#15803d" }}>Light green</strong> = Repair Completed / Ready for Handover</span>
-                  </div>
 
                   {/* Selected Device Preview Card */}
                   {(() => {
@@ -1402,74 +1457,109 @@ export default function JobCardsPage() {
                       selectedDev.status === "completed" ||
                       selectedDev.status === "delivered" ||
                       normalizeDeviceStatus(selectedDev.status) === "ready_for_sale";
+                    const initialProb = extractDeviceIssue(selectedDev);
 
                     return (
                       <div
                         style={{
-                          marginTop: "8px",
-                          background: isReady ? "#f0fdf4" : "#f0f7ff",
-                          border: isReady ? "1.5px solid #86efac" : "1px solid #bfdbfe",
-                          borderRadius: "8px",
-                          padding: "9px 12px",
+                          marginTop: "10px",
+                          background: isReady ? "linear-gradient(to right, #f0fdf4, #ffffff)" : "linear-gradient(to right, #f8fafc, #ffffff)",
+                          border: isReady ? "1.5px solid #86efac" : "1.5px solid #cbd5e1",
+                          borderRadius: "12px",
+                          padding: "12px 14px",
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
+                          flexDirection: "column",
                           gap: "8px",
-                          flexWrap: "wrap",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.03)",
                         }}
                       >
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <b style={{ color: isReady ? "#15803d" : "#0176d3", fontSize: "13px" }}>
-                              {isReady ? "✓ " : ""}{selectedDev.brand} {selectedDev.model}
-                            </b>
-                            {isReady && (
-                              <span style={{ fontSize: "10.5px", background: "#dcfce7", color: "#166534", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
-                                Completed / Ready
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ fontSize: "11px", color: isReady ? "#166534" : "#475569", marginTop: "3px" }}>
-                            IMEI: <code style={{ color: "#0f172a", fontWeight: 700 }}>{selectedDev.imei1 || "No IMEI recorded"}</code>
-                          </div>
-                          {(() => {
-                            const rawProb = (selectedDev.initial_issue || selectedDev.notes || "").trim();
-                            const cleanProb = selectedDev.initial_issue
-                              ? selectedDev.initial_issue.trim()
-                              : rawProb.replace(/^\[.*?\]\s*/, "").trim();
-                            if (!cleanProb) return null;
-                            return (
-                              <div style={{ fontSize: "11px", color: "#475569", marginTop: "3px" }}>
-                                Initial Problem / Notes: <strong style={{ color: "#0284c7" }}>{cleanProb}</strong>
+                        {/* Top row: Phone Icon + Brand/Model + Status Tag */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "8px",
+                                background: isReady ? "#dcfce7" : "#eff6ff",
+                                color: isReady ? "#166534" : "#0284c7",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Smartphone size={16} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
+                                {selectedDev.brand} {selectedDev.model}
                               </div>
-                            );
-                          })()}
+                              <div style={{ fontSize: "11px", color: "#64748b" }}>
+                                IMEI: <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#1e293b" }}>{selectedDev.imei1 || "No IMEI recorded"}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              background: isReady ? "#dcfce7" : "#dbeafe",
+                              color: isReady ? "#15803d" : "#1d4ed8",
+                              border: isReady ? "1px solid #86efac" : "1px solid #bfdbfe",
+                              fontWeight: 700,
+                              fontSize: "11px",
+                              padding: "3px 8px",
+                              borderRadius: "6px",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {isReady ? "✓ Ready" : formatDeviceStatus(selectedDev.status)}
+                          </span>
                         </div>
-                        <span
-                          className="tag"
-                          style={{
-                            background: isReady ? "#dcfce7" : "#dbeafe",
-                            color: isReady ? "#15803d" : "#1d4ed8",
-                            border: isReady ? "1px solid #86efac" : "1px solid #bfdbfe",
-                            fontWeight: 700,
-                            fontSize: "11px",
-                          }}
-                        >
-                          {isReady ? "✓ " : ""}{formatDeviceStatus(selectedDev.status)}
-                        </span>
+
+                        {/* Intake Fault Highlight */}
+                        {initialProb && (
+                          <div
+                            style={{
+                              background: "#f0f9ff",
+                              border: "1px solid #bae6fd",
+                              borderRadius: "8px",
+                              padding: "6px 10px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "7px",
+                              fontSize: "11.5px",
+                              color: "#0369a1",
+                            }}
+                          >
+                            <Wrench size={13} style={{ flexShrink: 0, color: "#0284c7" }} />
+                            <span>
+                              Intake Issue / Problem: <strong style={{ color: "#0c4a6e" }}>{initialProb}</strong>
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
                 </div>
               )}
 
+              {/* Complaint Input & Priority/Tech Row */}
               <div style={{ marginTop: "14px", display: "grid", gap: "12px" }}>
-                <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
+                <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "6px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span>Reported Complaint / Issue *</span>
-                    {intakeMode === "existing_phone" && existingDeviceId && (
-                      <span style={{ fontSize: "10.5px", color: "#0284c7", fontWeight: 500 }}>
-                        (Auto-filled from device record • fully editable)
+                    {intakeMode === "existing_phone" && existingDeviceId && complaint && (
+                      <span
+                        style={{
+                          fontSize: "10.5px",
+                          color: "#0284c7",
+                          background: "#e0f2fe",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        ✓ Auto-filled from device • Editable
                       </span>
                     )}
                   </div>
@@ -1479,29 +1569,34 @@ export default function JobCardsPage() {
                     value={complaint}
                     onChange={(e) => setComplaint(e.target.value)}
                     style={{
-                      height: "38px",
+                      height: "42px",
                       border: "1.5px solid #cbd5e1",
-                      borderRadius: "8px",
-                      padding: "0 10px",
-                      fontSize: "12.5px",
+                      borderRadius: "10px",
+                      padding: "0 12px",
+                      fontSize: "13px",
                       width: "100%",
                       boxSizing: "border-box",
+                      color: "#0f172a",
+                      background: "#ffffff",
+                      outline: "none",
                     }}
                   />
                 </label>
 
-                <div className="form-grid">
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
+                {/* Priority & Initial Tech Side-by-Side */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "6px" }}>
                     Repair Priority
                     <select
                       value={priority}
                       onChange={(e) => setPriority(e.target.value)}
                       style={{
-                        height: "38px",
+                        height: "42px",
                         border: "1.5px solid #cbd5e1",
-                        borderRadius: "8px",
-                        padding: "0 34px 0 10px",
+                        borderRadius: "10px",
+                        padding: "0 30px 0 10px",
                         fontSize: "12.5px",
+                        fontWeight: 600,
                         background: "#fff",
                         width: "100%",
                         boxSizing: "border-box",
@@ -1509,35 +1604,36 @@ export default function JobCardsPage() {
                       }}
                     >
                       <option value="Normal">Normal</option>
-                      <option value="Urgent">Urgent (Express)</option>
-                      <option value="High">High</option>
-                      <option value="Low">Low</option>
+                      <option value="Urgent">Urgent (Express) 🔥</option>
+                      <option value="High">High Priority</option>
+                      <option value="Low">Low Priority</option>
                     </select>
                   </label>
 
-                  <label style={{ fontSize: "11.5px", color: "#475569", fontWeight: 600, display: "grid", gap: "4px" }}>
-                    Assign Initial Technician
+                  <label style={{ fontSize: "12px", color: "#334155", fontWeight: 600, display: "grid", gap: "6px" }}>
+                    Assign Initial Tech
                     <select
                       value={initialTechId}
                       onChange={(e) => setInitialTechId(e.target.value)}
                       style={{
                         width: "100%",
-                        height: "38px",
+                        height: "42px",
                         border: "1.5px solid #cbd5e1",
-                        borderRadius: "8px",
-                        padding: "0 34px 0 10px",
+                        borderRadius: "10px",
+                        padding: "0 30px 0 10px",
                         fontSize: "12px",
+                        fontWeight: 500,
                         background: "#fff",
                         boxSizing: "border-box",
                         cursor: "pointer",
                       }}
                     >
-                      <option value="">-- Unassigned (Assign Later) --</option>
+                      <option value="">-- Unassigned --</option>
                       {staffList
                         .filter((s) => (s.role === "technician" || s.role === "owner" || s.role === "workshop_manager") && isStaffMemberActive(s))
                         .map((tech) => (
                           <option key={tech.id} value={tech.id}>
-                            {tech.full_name || "Staff"} ({tech.role?.replace(/_/g, " ")})
+                            {tech.full_name || "Staff"}
                           </option>
                         ))}
                     </select>
@@ -1546,12 +1642,13 @@ export default function JobCardsPage() {
               </div>
             </div>
 
+            {/* Modal Actions Footer */}
             <div
               className="modal-actions"
               style={{
                 flexShrink: 0,
-                marginTop: "12px",
-                paddingTop: "12px",
+                marginTop: "16px",
+                paddingTop: "14px",
                 borderTop: "1px solid #f1f5f9",
                 display: "grid",
                 gridTemplateColumns: "1fr 2fr",
@@ -1563,14 +1660,31 @@ export default function JobCardsPage() {
               <button
                 type="button"
                 className="secondary-btn"
-                style={{ justifyContent: "center", height: "40px", fontSize: "13px", fontWeight: 600 }}
+                style={{
+                  justifyContent: "center",
+                  height: "42px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  borderRadius: "10px",
+                  background: "#f8fafc",
+                  border: "1.5px solid #e2e8f0",
+                  color: "#475569",
+                }}
                 onClick={() => setShowAddJob(false)}
               >
                 Cancel
               </button>
               <button
                 className="primary-btn"
-                style={{ justifyContent: "center", height: "40px", fontSize: "13px", fontWeight: 700 }}
+                style={{
+                  justifyContent: "center",
+                  height: "42px",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #0176d3 0%, #005fb2 100%)",
+                  boxShadow: "0 2px 6px rgba(1, 118, 211, 0.25)",
+                }}
                 disabled={submitting}
               >
                 {submitting ? "Opening Ticket..." : "Create Repair Job Card"}
