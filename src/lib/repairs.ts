@@ -747,9 +747,18 @@ export async function getJobCards(statusFilter = ""): Promise<Job[]> {
       const rawLocalAsgn = localStorage.getItem(`phonehub_job_assignments_${j.id}`);
       if (rawLocalAsgn) {
         const localList = JSON.parse(rawLocalAsgn);
-        const seenIds = new Set(assignments.map((a: any) => a.id));
+        if (assignments.length > 0) {
+          try {
+            localStorage.removeItem(`phonehub_job_assignments_${j.id}`);
+          } catch {}
+        }
         for (const la of localList) {
-          if (!seenIds.has(la.id)) {
+          const isAlreadyInDb = assignments.some(
+            (a: any) =>
+              a.id === la.id ||
+              (a.technician_id === la.technician_id && a.task_name === la.task_name)
+          );
+          if (!isAlreadyInDb) {
             assignments.push(la);
           }
         }
@@ -1260,9 +1269,21 @@ export async function getJobIssuedParts(jobId: string): Promise<StockLedgerEntry
         };
       });
 
-      const seen = new Set(dbEntries.map((e: any) => e.id));
+      // Clear the local cache for this job since database is confirmed source of truth
+      try {
+        localStorage.removeItem(`phonehub_parts_issued_${jobId}`);
+      } catch {}
+
+      // Deduplicate: If any local item was un-synced, only include if NOT already in dbEntries
       for (const loc of localList) {
-        if (!seen.has(loc.id)) {
+        const isAlreadyInDb = dbEntries.some(
+          (d) =>
+            d.id === loc.id ||
+            (d.spare_part_id === loc.spare_part_id &&
+              Number(d.quantity) === Number(loc.quantity) &&
+              Math.abs(Number(d.unit_cost) - Number(loc.unit_cost)) < 0.01)
+        );
+        if (!isAlreadyInDb) {
           dbEntries.push(loc);
         }
       }
