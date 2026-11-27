@@ -1299,12 +1299,25 @@ export default function JobCardsPage() {
                         width: "100%",
                         maxWidth: "100%",
                         height: "40px",
-                        border: "1.5px solid #cbd5e1",
+                        border: (() => {
+                          const dev = devices.find((d) => d.id === existingDeviceId);
+                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
+                          return isReady ? "1.5px solid #10b981" : "1.5px solid #cbd5e1";
+                        })(),
                         borderRadius: "8px",
                         padding: "0 34px 0 12px",
                         fontSize: "12.5px",
-                        color: existingDeviceId ? "#0f172a" : "#64748b",
-                        background: "#ffffff",
+                        color: (() => {
+                          if (!existingDeviceId) return "#64748b";
+                          const dev = devices.find((d) => d.id === existingDeviceId);
+                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
+                          return isReady ? "#15803d" : "#0f172a";
+                        })(),
+                        background: (() => {
+                          const dev = devices.find((d) => d.id === existingDeviceId);
+                          const isReady = dev && (dev.status === "ready_for_sale" || dev.status === "completed" || dev.status === "delivered" || normalizeDeviceStatus(dev.status) === "ready_for_sale");
+                          return isReady ? "#f0fdf4" : "#ffffff";
+                        })(),
                         outline: "none",
                         fontWeight: 600,
                         boxSizing: "border-box",
@@ -1314,28 +1327,57 @@ export default function JobCardsPage() {
                         overflow: "hidden",
                       }}
                     >
-                      <option value="">-- Choose Phone from Inventory --</option>
-                      {devices.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)})
-                        </option>
-                      ))}
+                      <option value="" style={{ background: "#ffffff", color: "#64748b" }}>
+                        -- Choose Phone from Inventory --
+                      </option>
+                      {devices.map((d) => {
+                        const isReady =
+                          d.status === "ready_for_sale" ||
+                          d.status === "completed" ||
+                          d.status === "delivered" ||
+                          normalizeDeviceStatus(d.status) === "ready_for_sale";
+                        return (
+                          <option
+                            key={d.id}
+                            value={d.id}
+                            style={{
+                              backgroundColor: isReady ? "#dcfce7" : "#ffffff",
+                              color: isReady ? "#15803d" : "#0f172a",
+                              fontWeight: isReady ? 700 : 500,
+                            }}
+                          >
+                            {isReady ? "✓ " : ""}{d.brand} {d.model} {d.imei1 ? `• ${d.imei1.slice(0, 8)}...` : ""} ({formatDeviceStatus(d.status)}){isReady ? " — [Done / Ready]" : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   </label>
+
+                  {/* Indicator legend */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", fontSize: "11px", color: "#64748b" }}>
+                    <span style={{ display: "inline-block", width: "10px", height: "10px", borderRadius: "2px", background: "#dcfce7", border: "1px solid #86efac" }}></span>
+                    <span><strong style={{ color: "#15803d" }}>Light green</strong> = Repair Completed / Ready for Handover</span>
+                  </div>
 
                   {/* Selected Device Preview Card */}
                   {(() => {
                     if (!existingDeviceId) return null;
                     const selectedDev = devices.find((d) => d.id === existingDeviceId);
                     if (!selectedDev) return null;
+                    const isReady =
+                      selectedDev.status === "ready_for_sale" ||
+                      selectedDev.status === "completed" ||
+                      selectedDev.status === "delivered" ||
+                      normalizeDeviceStatus(selectedDev.status) === "ready_for_sale";
+
                     return (
                       <div
                         style={{
                           marginTop: "8px",
-                          background: "#f0f7ff",
-                          border: "1px solid #bfdbfe",
+                          background: isReady ? "#f0fdf4" : "#f0f7ff",
+                          border: isReady ? "1.5px solid #86efac" : "1px solid #bfdbfe",
                           borderRadius: "8px",
-                          padding: "8px 12px",
+                          padding: "9px 12px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
@@ -1344,13 +1386,31 @@ export default function JobCardsPage() {
                         }}
                       >
                         <div>
-                          <b style={{ color: "#0176d3", fontSize: "13px" }}>{selectedDev.brand} {selectedDev.model}</b>
-                          <div style={{ fontSize: "11px", color: "#475569", marginTop: "2px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <b style={{ color: isReady ? "#15803d" : "#0176d3", fontSize: "13px" }}>
+                              {isReady ? "✓ " : ""}{selectedDev.brand} {selectedDev.model}
+                            </b>
+                            {isReady && (
+                              <span style={{ fontSize: "10.5px", background: "#dcfce7", color: "#166534", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                Completed / Ready
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: "11px", color: isReady ? "#166534" : "#475569", marginTop: "3px" }}>
                             IMEI: <code style={{ color: "#0f172a", fontWeight: 700 }}>{selectedDev.imei1 || "No IMEI recorded"}</code>
                           </div>
                         </div>
-                        <span className="tag" style={{ background: "#dbeafe", color: "#1d4ed8", fontWeight: 700, fontSize: "11px" }}>
-                          {formatDeviceStatus(selectedDev.status)}
+                        <span
+                          className="tag"
+                          style={{
+                            background: isReady ? "#dcfce7" : "#dbeafe",
+                            color: isReady ? "#15803d" : "#1d4ed8",
+                            border: isReady ? "1px solid #86efac" : "1px solid #bfdbfe",
+                            fontWeight: 700,
+                            fontSize: "11px",
+                          }}
+                        >
+                          {isReady ? "✓ " : ""}{formatDeviceStatus(selectedDev.status)}
                         </span>
                       </div>
                     );
