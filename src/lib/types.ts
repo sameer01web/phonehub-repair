@@ -223,6 +223,8 @@ export type StockLedgerEntry = {
   quantity: number;
   quantity_delta: number;
   unit_cost: number;
+  total_cost?: number;
+  reference_note?: string | null;
   job_card_id?: string | null;
   reference_type?: string | null;
   reference_id?: string | null;
