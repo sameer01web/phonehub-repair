@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="phGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Base App Tile Background -->
+  <rect width="64" height="64" rx="16" fill="url(#phGradient)" />
+
+  <!-- Handset Silhouette Frame -->
+  <rect x="17" y="7" width="30" height="50" rx="7" fill="#ffffff" filter="url(#shadow)" />
+  
+  <!-- Handset Screen Inner Display -->
+  <rect x="20" y="13" width="24" height="38" rx="4" fill="#0f172a" />
+
+  <!-- Earpiece Speaker Notch -->
+  <rect x="28" y="9.5" width="8" height="1.8" rx="0.9" fill="#94a3b8" />
+
+  <!-- Screen Content: Crossed Wrench & Screwdriver (Repair Workshop Symbol) -->
+  <g transform="translate(24, 21)" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Wrench -->
+    <path d="M12 2l-2 2a2 2 0 0 0 0 2.8l1 1-6.5 6.5a1.5 1.5 0 0 1-2.1 0l-.7-.7a1.5 1.5 0 0 1 0-2.1L8.2 5l1 1A2 2 0 0 0 12 6l2-2" stroke="#38bdf8" fill="none"/>
+  </g>
+
+  <!-- Glowing Workshop Status Badge: Verified Ready Green Check -->
+  <circle cx="47" cy="15" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2" />
+  <path d="M43.5 15l2.2 2.2 4.3-4.4" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
