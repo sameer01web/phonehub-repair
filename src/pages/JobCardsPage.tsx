@@ -55,6 +55,47 @@ const SPECIALIZATION_TASKS: Record<string, string[]> = {
   "General mobile technician": ["General Hardware Diagnostic", "Full Cleaning & Inspection", "Accessory & Button Repair"],
 };
 
+/**
+ * Returns clean short name and initials for technicians
+ * e.g., "Sameer Shaikh" -> { shortName: "Sameer S.", fullName: "Sameer Shaikh", initials: "SS" }
+ */
+function getTechShortName(techId?: string | null, staffList: Profile[] = [], currentUser?: any): { shortName: string; fullName: string; initials: string } {
+  if (!techId) {
+    return { shortName: "Unassigned", fullName: "Unassigned", initials: "?" };
+  }
+  const tech = staffList.find((s) => s.id === techId);
+  let rawName = tech?.full_name || (techId === currentUser?.id ? (currentUser?.user_metadata?.full_name || currentUser?.email?.split("@")[0] || "Me") : "");
+
+  if (!rawName) {
+    rawName = techId.length > 20 ? "Technician" : techId;
+  }
+
+  // Strip parenthetical roles/specializations, e.g. "sameer shaikh (Software & Flashing)" -> "sameer shaikh"
+  const clean = rawName.replace(/\(.*?\)/g, "").trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) {
+    return { shortName: "Technician", fullName: rawName, initials: "TC" };
+  }
+
+  const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+
+  let initials = "";
+  let shortName = "";
+
+  if (words.length === 1) {
+    shortName = cap(words[0]);
+    initials = words[0].slice(0, 2).toUpperCase();
+  } else {
+    const first = cap(words[0]);
+    const lastInitial = words[words.length - 1].charAt(0).toUpperCase();
+    shortName = `${first} ${lastInitial}.`;
+    initials = `${words[0].charAt(0)}${words[words.length - 1].charAt(0)}`.toUpperCase();
+  }
+
+  return { shortName, fullName: clean, initials };
+}
+
 export default function JobCardsPage() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -608,7 +649,7 @@ export default function JobCardsPage() {
           </div>
         </div>
 
-        {/* 1. Desktop View: Comprehensive 8-column Table */}
+        {/* 1. Desktop View: Streamlined 7-column Table */}
         <div className="table-wrap desktop-jobs-table">
           <table>
             <thead>
@@ -618,7 +659,6 @@ export default function JobCardsPage() {
                 <th>Reported Problem / Diagnosis</th>
                 <th>Priority</th>
                 <th>Status & Workflow</th>
-                <th>Assigned Technician(s)</th>
                 <th>Quick Actions</th>
                 <th>Details</th>
               </tr>
@@ -626,11 +666,11 @@ export default function JobCardsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="empty">Loading repair job cards…</td>
+                  <td colSpan={7} className="empty">Loading repair job cards…</td>
                 </tr>
               ) : filteredJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="empty">
+                  <td colSpan={7} className="empty">
                     No repair tickets match the active filters. Click "Open Repair Job Card" to start a repair.
                   </td>
                 </tr>
@@ -729,22 +769,6 @@ export default function JobCardsPage() {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </div>
-                      </td>
-
-                      <td>
-                        {(j.assignments || []).length === 0 ? (
-                          <span style={{ fontSize: "11px", color: "#94a3b8", fontStyle: "italic" }}>
-                            Unassigned
-                          </span>
-                        ) : (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                            {j.assignments?.map((a) => (
-                              <span key={a.id} className="tag" style={{ background: "#f1edff", color: "#7955c7", fontSize: "11px" }}>
-                                {a.task_name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
                       </td>
 
                       {/* Step-by-Step Technician Actions */}
@@ -1889,38 +1913,118 @@ export default function JobCardsPage() {
 
             {/* Assigned Technicians */}
             <div style={{ marginBottom: "16px" }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#152b49", marginBottom: "8px" }}>
-                Assigned Technician Bench Tasks ({(viewJob.assignments || []).length})
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#152b49" }}>
+                  Assigned Technicians & Bench Tasks ({(viewJob.assignments || []).length})
+                </div>
               </div>
               {(viewJob.assignments || []).length === 0 ? (
                 <div className="empty" style={{ padding: "14px" }}>
                   No technicians currently assigned to this repair.
                 </div>
               ) : (
-                <div style={{ display: "grid", gap: "6px" }}>
-                  {viewJob.assignments?.map((a) => (
-                    <div
-                      key={a.id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px 12px",
-                        background: "#f1edff",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      <div>
-                        <b style={{ fontSize: "12px", color: "#7955c7" }}>{a.task_name}</b>
-                        <div style={{ fontSize: "10px", color: "#64748b" }}>
-                          Assigned: {a.assigned_at ? new Date(a.assigned_at).toLocaleString("en-IN") : "—"}
+                <div style={{ display: "grid", gap: "8px" }}>
+                  {viewJob.assignments?.map((a) => {
+                    let spec = "";
+                    let taskName = a.task_name || "Repair task";
+                    const match = taskName.match(/^\[(.*?)\]\s*(.*)$/);
+                    if (match) {
+                      spec = match[1];
+                      taskName = match[2];
+                    }
+                    const techInfo = getTechShortName(a.technician_id, staffList, user);
+
+                    return (
+                      <div
+                        key={a.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "10px 14px",
+                          background: "#ffffff",
+                          border: "1.5px solid #e0e7ff",
+                          borderRadius: "8px",
+                          gap: "12px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                          {/* Technician Short Name Pill with Avatar */}
+                          <div
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              background: "#ede9fe",
+                              border: "1px solid #ddd6fe",
+                              borderRadius: "20px",
+                              padding: "3px 10px 3px 4px",
+                              flexShrink: 0,
+                            }}
+                            title={`Technician: ${techInfo.fullName}`}
+                          >
+                            <span
+                              style={{
+                                width: "22px",
+                                height: "22px",
+                                borderRadius: "50%",
+                                background: "#7c3aed",
+                                color: "#ffffff",
+                                fontSize: "10px",
+                                fontWeight: 800,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {techInfo.initials}
+                            </span>
+                            <span style={{ fontSize: "11.5px", fontWeight: 700, color: "#5b21b6" }}>
+                              {techInfo.shortName}
+                            </span>
+                          </div>
+
+                          {/* Task Name & Specialization */}
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                              <b style={{ fontSize: "12.5px", color: "#1e293b" }}>{taskName}</b>
+                              {spec && (
+                                <span
+                                  style={{
+                                    fontSize: "10px",
+                                    fontWeight: 600,
+                                    background: "#e0f2fe",
+                                    color: "#0369a1",
+                                    padding: "1px 6px",
+                                    borderRadius: "4px",
+                                  }}
+                                >
+                                  {spec}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: "10.5px", color: "#64748b", marginTop: "2px" }}>
+                              Assigned: {a.assigned_at ? new Date(a.assigned_at).toLocaleString("en-IN") : "—"}
+                            </div>
+                          </div>
                         </div>
+
+                        <span
+                          className="tag"
+                          style={{
+                            background: "#ede9fe",
+                            fontWeight: 700,
+                            color: "#6d28d9",
+                            border: "1px solid #ddd6fe",
+                            fontSize: "11px",
+                          }}
+                        >
+                          Assigned
+                        </span>
                       </div>
-                      <span className="tag" style={{ background: "#fff", fontWeight: 700, color: "#7955c7" }}>
-                        Assigned
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
