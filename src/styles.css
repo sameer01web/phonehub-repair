@@ -2139,25 +2139,88 @@ select option {
   display: inline;
 }
 
-.parts-toolbar-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.parts-search-bar {
+/* Spare Parts Single-Line Unified Toolbar */
+.parts-toolbar-single-row {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.parts-meta-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.parts-toolbar-single-row .parts-searchbox {
+  flex: 1 1 200px;
+  min-width: 180px;
+  width: auto;
+  height: 38px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.parts-toolbar-single-row .parts-searchbox input {
+  font-size: 12.5px;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.parts-toolbar-single-row .parts-filter-btn {
+  height: 38px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.parts-toolbar-single-row .parts-refresh-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.parts-toolbar-single-row .parts-refresh-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.parts-toolbar-single-row .parts-count-badge {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .desktop-parts-table,
@@ -2444,12 +2507,14 @@ select option {
   }
 
   .devices-toolbar-single-row,
-  .jobs-toolbar-single-row {
+  .jobs-toolbar-single-row,
+  .parts-toolbar-single-row {
     gap: 8px !important;
   }
 
   .devices-toolbar-single-row .devices-searchbox,
-  .jobs-toolbar-single-row .jobs-searchbox {
+  .jobs-toolbar-single-row .jobs-searchbox,
+  .parts-toolbar-single-row .parts-searchbox {
     width: 100% !important;
     flex: 1 1 100% !important;
   }

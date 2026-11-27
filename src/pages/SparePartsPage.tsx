@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Edit2,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   getSpareParts,
@@ -286,55 +287,61 @@ export default function SparePartsPage() {
       {/* TAB 1: CATALOG */}
       {activeTab === "catalog" && (
         <div className="panel">
-          <div className="parts-toolbar-container">
-            <div className="parts-search-bar">
-              <div className="searchbox" style={{ flex: 1 }}>
-                <Search size={16} />
-                <input
-                  placeholder="Search part name, SKU, or compatible model..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && loadData()}
-                />
-              </div>
-            </div>
-
-            <div className="parts-meta-bar">
-              <button
-                type="button"
-                className="secondary-btn"
-                style={{
-                  background: showLowStockOnly ? "#fff8e7" : undefined,
-                  color: showLowStockOnly ? "#805b16" : undefined,
-                  border: showLowStockOnly ? "1px solid #f3dfad" : undefined,
-                  fontSize: "11.5px",
-                  padding: "5px 10px",
-                }}
-                onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-              >
-                <AlertTriangle size={14} />
-                {showLowStockOnly ? "Showing Low Stock" : "Filter Low Stock"}
-              </button>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <button className="icon-btn" onClick={loadData} title="Refresh">
-                  <RefreshCw size={15} />
-                </button>
-                <span
-                  className="count"
+          <div className="parts-toolbar-single-row">
+            {/* Search Box */}
+            <div className="searchbox parts-searchbox">
+              <Search size={16} />
+              <input
+                placeholder="Search part name, SKU, or compatible model..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && loadData()}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
                   style={{
-                    background: "#f1f5f9",
-                    color: "#475569",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    padding: "4px 10px",
-                    borderRadius: "20px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#94a3b8",
+                    padding: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
                   }}
+                  title="Clear search"
                 >
-                  ⚙️ {displayedParts.length} parts
-                </span>
-              </div>
+                  <X size={14} />
+                </button>
+              )}
             </div>
+
+            {/* Filter Low Stock Button */}
+            <button
+              type="button"
+              className="secondary-btn parts-filter-btn"
+              style={{
+                background: showLowStockOnly ? "#fff8e7" : "#ffffff",
+                color: showLowStockOnly ? "#805b16" : "#475569",
+                border: showLowStockOnly ? "1.5px solid #f3dfad" : "1.5px solid #cbd5e1",
+              }}
+              onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+              title={showLowStockOnly ? "Click to view all parts" : "Filter parts running low on stock"}
+            >
+              <AlertTriangle size={14} style={{ color: showLowStockOnly ? "#d97706" : "#f59e0b" }} />
+              <span>{showLowStockOnly ? "Showing Low Stock" : "Filter Low Stock"}</span>
+            </button>
+
+            {/* Refresh Action Button */}
+            <button className="icon-btn parts-refresh-btn" onClick={loadData} title="Refresh">
+              <RefreshCw size={15} />
+            </button>
+
+            {/* Parts Count Badge */}
+            <span className="count parts-count-badge">
+              ⚙️ {displayedParts.length} parts
+            </span>
           </div>
 
           {/* 1. Desktop View Table */}
